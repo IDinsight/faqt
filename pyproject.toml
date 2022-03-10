@@ -1,0 +1,14 @@
+[tool.isort]
+profile = "black"
+src_paths = ["src", "api_demo_apicall", "api_faq_db", "api_model"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-rPaq"
+testpaths = ["tests"]
+python_files = ["*.py"]
+markers = ["slow: mark test as slow", "fast: mark test as fast"]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning"
+]
