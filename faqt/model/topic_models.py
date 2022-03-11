@@ -47,7 +47,6 @@ class TopicModelScorer:
     **scoring_func_kwargs: dict, optional
         Additional arguments to be passed to the `scoring_function`.
 
-
     Notes
     -----
     * w2v binary must contain prenormalized vectors. This is to reduce operations
