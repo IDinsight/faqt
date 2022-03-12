@@ -1,5 +1,6 @@
 import numpy as np
-from .embeddings import model_search_word, model_search, cs_nearest_k_percent_average
+from ..scoring_functions import cs_nearest_k_percent_average
+from .embeddings import model_search_word, model_search
 
 
 class FAQScorer:
@@ -9,11 +10,17 @@ class FAQScorer:
         glossary=None,
         hunspell=None,
         tags_guiding_typos_wv=None,
+        n_top_matches=None,
+        scoring_function=cs_nearest_k_percent_average,
+        **scoring_func_kwargs
     ):
         self.w2v_model = w2v_model
         self.glossary = glossary
         self.hunspell = hunspell
         self.tags_guiding_typos_wv = tags_guiding_typos_wv
+        self.n_top_matches = n_top_matches
+        self.scoring_function = scoring_function
+        self.scoring_func_kwargs = scoring_func_kwargs
 
     def fit(self, faqs):
         for faq in faqs:
@@ -26,12 +33,15 @@ class FAQScorer:
         return self
 
     def score(
-        self,
-        message,
-        n_top_matches,
-        scoring_function=cs_nearest_k_percent_average,
-        **scoring_func_kwargs
+        self, message, n_top_matches=None, scoring_function=None, **scoring_func_kwargs
     ):
+
+        scoring_function = self._get_updated_scoring_func(self, scoring_function)
+        scoring_func_kwargs = self._get_updated_scoring_func_args(
+            self, scoring_func_kwargs
+        )
+        if n_top_matches is None:
+            n_top_matches = self.n_top_matches
 
         top_matches_list = []
         scoring = {}
@@ -51,6 +61,30 @@ class FAQScorer:
         top_matches_list = get_top_n_matches(scoring, n_top_matches)
 
         return top_matches_list, scoring, inbound_spellcorrected
+
+    def _get_updated_scoring_func(self, my_scoring_func):
+
+        if my_scoring_func is None:
+            if self.scoring_function is None:
+                raise ValueError(
+                    (
+                        "Must provide `scoring_function` either at init "
+                        "or when calling `.score()`"
+                    )
+                )
+            else:
+                scoring_function = self.scoring_function
+        else:
+            scoring_function = my_scoring_func
+
+        return scoring_function
+
+    def _get_updated_scoring_func_args(self, **my_scoring_func_kwargs):
+
+        scoring_func_kwargs = self.scoring_func_kwargs.copy()
+        scoring_func_kwargs.update(my_scoring_func_kwargs)
+
+        return scoring_func_kwargs
 
 
 def get_faq_scores_for_message(
