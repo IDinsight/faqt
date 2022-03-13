@@ -156,10 +156,12 @@ class FAQScorer:
         scoring_func_kwargs = self.scoring_func_kwargs
         n_top_matches = self.n_top_matches
 
-        scoring_function = self._get_updated_scoring_func(self, scoring_function)
-        scoring_func_kwargs = self._get_updated_scoring_func_args(
-            self, scoring_func_kwargs
-        )
+        if not hasattr(self, "faqs"):
+            raise RuntimeError(
+                "Model has not been fit. Please run .fit() method before .score"
+            )
+        scoring_function = self._get_updated_scoring_func(scoring_function)
+        scoring_func_kwargs = self._get_updated_scoring_func_args(**scoring_func_kwargs)
         if n_top_matches is None:
             n_top_matches = self.n_top_matches
 
@@ -274,4 +276,8 @@ def get_top_n_matches(scoring, n_top_matches):
 
         if len(matched_faq_titles) == n_top_matches:
             break
+<<<<<<< HEAD
+=======
+
+>>>>>>> 653620f (typo guiding tags now taken as string)
     return top_matches_list
