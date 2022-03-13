@@ -9,7 +9,7 @@ class FAQScorer:
         w2v_model,
         glossary=None,
         hunspell=None,
-        tags_guiding_typos_wv=None,
+        tags_guiding_typos=None,
         n_top_matches=None,
         scoring_function=cs_nearest_k_percent_average,
         **scoring_func_kwargs
@@ -17,35 +17,23 @@ class FAQScorer:
         self.w2v_model = w2v_model
         self.glossary = glossary
         self.hunspell = hunspell
-        self.tags_guiding_typos_wv = tags_guiding_typos_wv
+        self.tags_guiding_typos = tags_guiding_typos
         self.n_top_matches = n_top_matches
         self.scoring_function = scoring_function
         self.scoring_func_kwargs = scoring_func_kwargs
 
-    def fit(self, faqs):
-        for faq in faqs:
-            faq.faq_tags_wvs = {
-                tag: model_search_word(tag, self.model, self.glossary)
-                for tag in faq.faq_tags
-            }
+        if self.tags_guiding_typos is not None:
+            self.tags_guiding_typos_wv = model_search(
+                tags_guiding_typos, w2v_model, glossary
+            )
+        else:
+            self.tags_guiding_typos_wv = None
 
-        self.faqs = faqs
-        return self
+    def model_search_word(self, word):
+        return model_search_word(word, self.w2v_model, self.glossary)
 
-    def score(
-        self, message, n_top_matches=None, scoring_function=None, **scoring_func_kwargs
-    ):
-
-        scoring_function = self._get_updated_scoring_func(self, scoring_function)
-        scoring_func_kwargs = self._get_updated_scoring_func_args(
-            self, scoring_func_kwargs
-        )
-        if n_top_matches is None:
-            n_top_matches = self.n_top_matches
-
-        top_matches_list = []
-        scoring = {}
-        inbound_vectors, inbound_spellcorrected = model_search(
+    def model_search(self, message):
+        return model_search(
             message,
             model=self.w2v_model,
             glossary=self.glossary,
@@ -54,10 +42,38 @@ class FAQScorer:
             return_spellcorrected_text=True,
         )
 
+    def fit(self, faqs):
+        for faq in faqs:
+            faq.faq_tags_wvs = {
+                tag: self.model_search_word(tag) for tag in faq.faq_tags
+            }
+        self.faqs = faqs
+
+        return self
+
+    def score(
+        self, message, n_top_matches=None, scoring_function=None, **scoring_func_kwargs
+    ):
+
+        if not hasattr(self, "faqs"):
+            raise RuntimeError(
+                "Model has not been fit. Please run .fit() method before .score"
+            )
+        scoring_function = self._get_updated_scoring_func(scoring_function)
+        scoring_func_kwargs = self._get_updated_scoring_func_args(**scoring_func_kwargs)
+        if n_top_matches is None:
+            n_top_matches = self.n_top_matches
+
+        top_matches_list = []
+        scoring = {}
+        inbound_vectors, inbound_spellcorrected = self.model_search(message)
+
         if len(inbound_vectors) == 0:
             return top_matches_list, scoring, ""
 
-        scoring = get_faq_scores_for_message(inbound_vectors, self.faqs)
+        scoring = get_faq_scores_for_message(
+            inbound_vectors, self.faqs, scoring_function, **scoring_func_kwargs
+        )
         top_matches_list = get_top_n_matches(scoring, n_top_matches)
 
         return top_matches_list, scoring, inbound_spellcorrected
@@ -127,4 +143,4 @@ def get_top_n_matches(scoring, n_top_matches):
         if len(matched_faq_titles) == n_top_matches:
             break
 
-    return (top_matches_list,)
+    return top_matches_list
