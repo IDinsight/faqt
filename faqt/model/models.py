@@ -15,6 +15,13 @@ class FAQScorer:
         **scoring_func_kwargs
     ):
         self.w2v_model = w2v_model
+
+        if glossary is None:
+            glossary = {}
+
+        if tags_guiding_typos is None:
+            tags_guiding_typos = {}
+
         self.glossary = glossary
         self.hunspell = hunspell
         self.tags_guiding_typos = tags_guiding_typos
@@ -130,7 +137,6 @@ def get_faq_scores_for_message(
 
 def get_top_n_matches(scoring, n_top_matches):
     matched_faq_titles = set()
-
     # Sort and copy over top matches
     top_matches_list = []
     for id in sorted(scoring, key=lambda x: scoring[x]["overall_score"], reverse=True):
@@ -142,5 +148,4 @@ def get_top_n_matches(scoring, n_top_matches):
 
         if len(matched_faq_titles) == n_top_matches:
             break
-
     return top_matches_list
