@@ -276,8 +276,4 @@ def get_top_n_matches(scoring, n_top_matches):
 
         if len(matched_faq_titles) == n_top_matches:
             break
-<<<<<<< HEAD
-=======
-
->>>>>>> 653620f (typo guiding tags now taken as string)
     return top_matches_list
