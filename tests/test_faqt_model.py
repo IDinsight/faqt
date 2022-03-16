@@ -69,7 +69,7 @@ class TestFAQScorer:
         basic_model.set_tags([])
         assert len(basic_model.faqs) == 0
 
-        matches, a, b = basic_model.score(tokens)
+        matches, a, b = basic_model.score(tokens, n_top_matches=3)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
