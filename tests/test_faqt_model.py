@@ -67,7 +67,7 @@ class TestFAQScorer:
         basic_model.fit([])
         assert len(basic_model.faqs) == 0
 
-        matches, a, b = basic_model.score(tokens)
+        matches, a, b = basic_model.score(tokens, n_top_matches=3)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -79,6 +79,6 @@ class TestFAQScorer:
         assert len(hunspell_model.faqs) == len(faqs)
         tokens = preprocess_text(input_text, {}, 0)
 
-        matches, a, b = hunspell_model.score(tokens, k=10, floor=1)
+        matches, a, b = hunspell_model.score(tokens, n_top_matches=3, k=10, floor=1)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
