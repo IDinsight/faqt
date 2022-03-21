@@ -2,7 +2,7 @@ name: FAQT library
 on:
   push:
     branches:
-      = "**"
+      - "**"
 
 jobs:
   RunUnitTests:
