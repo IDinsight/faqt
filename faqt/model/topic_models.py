@@ -1,3 +1,7 @@
+"""
+Class for matching messages to topic
+"""
+
 import numpy as np
 from ..scoring_functions import cs_nearest_k_percent_average
 from .embeddings import model_search_word, model_search
@@ -112,16 +116,16 @@ class TopicModelScorer:
         """
         Fit Topics
 
-        #TODO: Define FAQ type and check that object is FAQ-like.
+        #TODO: Define a Topic type and check that object is Topic-like.
 
         Parameters
         ----------
-        faqs: List[FAQ]
-            List of FAQ-like objects.
+        topics: List[Topic]
+            List of Topic-like objects.
 
         Returns
         -------
-        Fitted FAQScorer
+        Fitted TopicModelScorer
 
         """
         for topic in topics:
@@ -130,7 +134,7 @@ class TopicModelScorer:
                 tag_wv = self.model_search_word(tag)
                 if tag_wv is None:
                     warn(
-                        f"`{tag}` for topic {topic.name} not found in vocab",
+                        f"`{tag}` for topic {topic._id} not found in vocab",
                         RuntimeWarning,
                     )
                 else:
@@ -142,7 +146,7 @@ class TopicModelScorer:
 
     def score(self, message, scoring_function=None, **scoring_func_kwargs):
         """
-        Scores a gives message and returns matches from FAQs.
+        Scores a gives message and returns matches from Topics.
 
         Parameters
         ----------
@@ -163,13 +167,12 @@ class TopicModelScorer:
         **scoring_func_kwargs: dict, optional
             Additional arguments to be passed to the `scoring_function`.
             These can also be provided when calling the `.score` method
-            Returns
-            -------
-            Tuple[List[Tuple[Str, Str]], Dict, List[Str]]
-                First item is a list of (FAQ id, FAQ content) tuples. This will have a
-                max size of `n_top_matches`
-                Second item is a Dictionary that shows the scores for each of the FAQs
-                Third item is the spell corrected tokens for `message`.
+
+        Returns
+        -------
+        Tuple[Dict[int, float], List[Str]]
+            First item is a Dictionary that shows the scores for each of the topics
+            Second item is the spell corrected tokens for `message`.
         """
         if not hasattr(self, "topics"):
             raise RuntimeError(
@@ -184,7 +187,7 @@ class TopicModelScorer:
         if len(inbound_vectors) == 0:
             return scoring, ""
 
-        scoring = get_faq_scores_for_message(
+        scoring = get_scores_for_message(
             inbound_vectors, self.topics, scoring_function, **scoring_func_kwargs
         )
 
@@ -223,25 +226,24 @@ class TopicModelScorer:
         return scoring_func_kwargs
 
 
-def get_faq_scores_for_message(
+def get_scores_for_message(
     inbound_vectors, topics, scoring_function, **scoring_func_kwargs
 ):
     """
-    Returns scores for the inbound vectors against each faq
+    Returns scores for the inbound vectors against each topic
 
     Parameters
     ----------
     inbound_vectors: List[Array]
         List of inbound tokens as word vectors
-    faqs: List[Topics]
-        A list of faq-like objects. Each FAQ object must contain word vectors for
-        each tags as a dictionary under `FAQ.faq_tags_wvs`
+    topics: List[Topics]
+        A list of Topic-like objects. Each Topic object must contain word vectors for
+        each tags as a dictionary under `Topic.tags_wvs`
 
     Returns
     -------
-    Dict[int, Dict]
-        A Dictionary with `faq_id` as key. Values: faq details including scores
-        for each tag and an `overall_score`
+    Dict[int, float]
+        A Dictionary with `_id` as key and similarity score as value
     """
 
     scoring = {}
@@ -262,36 +264,3 @@ def get_faq_scores_for_message(
         scoring[topic._id] = (np.max(all_tag_scores) + np.mean(all_tag_scores)) / 2
 
     return scoring
-
-
-def get_top_n_matches(scoring, n_top_matches):
-    """
-    Gives a list of scores for each FAQ, return the top `n_top_matches` FAQs
-
-    Parameters
-    ----------
-    scoring: Dict[int, Dict]
-        Dict with faq_id as key and faq details and scores as values.
-        See return value of `get_faq_scores_for_message`.
-    n_top_matches: int
-        the number of top matches to return
-
-    Returns
-    -------
-    List[Tuple(int, str)]
-        A list of tuples of (faq_id, faq_content_to_send)._
-
-    """
-    matched_faq_titles = set()
-    # Sort and copy over top matches
-    top_matches_list = []
-    for id in sorted(scoring, key=lambda x: scoring[x]["overall_score"], reverse=True):
-        if scoring[id]["faq_title"] not in matched_faq_titles:
-            top_matches_list.append(
-                (scoring[id]["faq_title"], scoring[id]["faq_content_to_send"])
-            )
-            matched_faq_titles.add(scoring[id]["faq_title"])
-
-        if len(matched_faq_titles) == n_top_matches:
-            break
-    return top_matches_list
