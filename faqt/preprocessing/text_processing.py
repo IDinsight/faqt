@@ -50,7 +50,10 @@ def preprocess_text(
     content = _process_urls(content, n_min_dashed_words_url)
     content = re.sub("[^0-9a-zA-Z]+", " ", content)
     tokens = word_tokenize(content)
-    my_stop_words = set(stopwords.words("english")) - set(reincluded_stop_words)
+    if reincluded_stop_words is None:
+        my_stop_words = set(stopwords.words("english"))
+    else:
+        my_stop_words = set(stopwords.words("english")) - set(reincluded_stop_words)
     tokens = [t for t in tokens if t.lower() not in my_stop_words]
 
     tokens = _connect_phrases(tokens, entities_dict)
