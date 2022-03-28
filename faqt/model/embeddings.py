@@ -78,13 +78,13 @@ def model_search_word(
 
         return_vector = sum_vector / np.sqrt(np.dot(sum_vector, sum_vector))
         return_word = word.lower()
-    elif word in model.vocab:
+    elif word in model:
         return_vector = model[word]
         return_word = word
-    elif word.lower() in model.vocab:
+    elif word.lower() in model:
         return_vector = model[word.lower()]
         return_word = word.lower()
-    elif word.title() in model.vocab:
+    elif word.title() in model:
         return_vector = model[word.title()]
         return_word = word.title()
     elif (not hunspell) or (not tags_guiding_typos_wv):
