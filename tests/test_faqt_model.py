@@ -42,7 +42,7 @@ class TestFAQScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = FAQScorer(w2v_model, n_top_matches=3)
+        faqt = FAQScorer(w2v_model)
         return faqt
 
     @pytest.fixture
@@ -51,9 +51,6 @@ class TestFAQScorer:
             w2v_model,
             hunspell=hunspell,
             tags_guiding_typos=["music", "food"],
-            n_top_matches=3,
-            k=10,
-            floor=1,
         )
         return faqt
 

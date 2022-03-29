@@ -5,7 +5,7 @@ import numpy as np
 __all__ = ["cs_nearest_k_percent_average"]
 
 
-def cs_nearest_k_percent_average(list_of_wvs, target_wv, k, floor):
+def cs_nearest_k_percent_average(list_of_wvs, target_wv, k=100, floor=1):
     """
     Returns the cosine similarity between target_wv and
     the average of the normalized k% of word vectors in
