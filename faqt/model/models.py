@@ -5,7 +5,7 @@ from .embeddings import model_search_word, model_search
 
 class FAQScorer:
     """
-    Allows fitting FAQs and scoring new messages against it
+    Allows setting reference FAQs and scoring new messages against it
 
     Parameters
     ----------
@@ -30,33 +30,23 @@ class FAQScorer:
 
         Optional parameter. If None (or None equivalent), we assume not no guiding tags'
 
-    n_top_matches: int, optional
-        The maximum number of matches to return. Should be provided to either
-        the constructor (here) or when calling the `.score` method
+    n_top_matches: int
+        The maximum number of matches to return.
 
     scoring_function: Callable[List[Array], Array[1d]] -> float, optional
         A function that takes a list of word vectors (incoming message) as the first
         argument and a vector (tag) as the second argument and returns a similarity
         score as a scalar float.
-        - If not provided, used the `scoring_function.cs_nearest_k_percent_average`
-        function.
-        - If `None`, then it must be provided when calling the `score` method.
-
         Note: Additional arguments can be passed through `scoring_func_kwargs`
 
     **scoring_func_kwargs: dict, optional
         Additional arguments to be passed to the `scoring_function`.
-        These can also be provided when calling the `.score` method
-
 
     Notes
     -----
     * w2v binary must contain prenormalized vectors. This is to reduce operations
       needed when calculating distance. See script in `faqt.scripts` to prenormalize
       your vectors.
-    * The following parameters must be passed either in the constructor (here) or in
-      the `.score()` method: `n_top_matches`, `scoring_function`,
-      `**scoring_func_kwargs`.
     """
 
     def __init__(
@@ -65,7 +55,7 @@ class FAQScorer:
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
-        n_top_matches=None,
+        n_top_matches=3,
         scoring_function=cs_nearest_k_percent_average,
         **scoring_func_kwargs
     ):
@@ -77,9 +67,9 @@ class FAQScorer:
         if tags_guiding_typos is None:
             tags_guiding_typos = {}
 
-        self.glossary = glossary
+        self.glossary = glossary.copy()
         self.hunspell = hunspell
-        self.tags_guiding_typos = tags_guiding_typos
+        self.tags_guiding_typos = tags_guiding_typos.copy()
         self.n_top_matches = n_top_matches
         self.scoring_function = scoring_function
         self.scoring_func_kwargs = scoring_func_kwargs
@@ -113,9 +103,9 @@ class FAQScorer:
             return_spellcorrected_text=True,
         )
 
-    def fit(self, faqs):
+    def set_tags(self, faqs):
         """
-        Fit FAQs
+        Set the FAQs that messages should be matched against
 
         #TODO: Define FAQ type and check that object is FAQ-like.
 
@@ -126,8 +116,7 @@ class FAQScorer:
 
         Returns
         -------
-        Fitted FAQScorer
-
+        FAQScorer
         """
         for faq in faqs:
             faq.faq_tags_wvs = {
@@ -137,9 +126,7 @@ class FAQScorer:
 
         return self
 
-    def score(
-        self, message, n_top_matches=None, scoring_function=None, **scoring_func_kwargs
-    ):
+    def score(self, message):
         """
         Scores a gives message and returns matches from FAQs.
 
@@ -149,38 +136,24 @@ class FAQScorer:
             pre-processed input message as a list of tokens.
             See `faqt.preprocessing` for preprocessing functions
 
-        n_top_matches: int, optional
-            The maximum number of matches to return. Should be provided to either
-            the constructor or when calling the `.score` (here) method
-
-        scoring_function: Callable[List[Array], Array[1d]] -> float, optional
-            A function that takes a list of word vectors (incoming message) as the first
-            argument and a vector (tag) as the second argument and returns a similarity
-            score as a scalar float.
-            - If `None`, use the `scoring_function` passed in the contructor.
-            - If `None` and no `scoring_function` passed in contstructor, raise an
-              exception.
-
-            Note: Additional arguments can be passed through `scoring_func_kwargs`
-
-        **scoring_func_kwargs: dict, optional
-            Additional arguments to be passed to the `scoring_function`.
-            These can also be provided when calling the `.score` method
-            Returns
-            -------
-            Tuple[List[Tuple[Str, Str]], Dict, List[Str]]
-                First item is a list of (FAQ id, FAQ content) tuples. This will have a max
-                size of `n_top_matches`
-                Second item is a Dictionary that shows the scores for each of the FAQs
-                Third item is the spell corrected tokens for `message`.
+        Returns
+        -------
+        Tuple[List[Tuple[Str, Str]], Dict, List[Str]]
+            First item is a list of (FAQ id, FAQ content) tuples. This will have a
+            max size of `n_top_matches`
+            Second item is a Dictionary that shows the scores for each of the FAQs
+            Third item is the spell corrected tokens for `message`.
         """
         if not hasattr(self, "faqs"):
             raise RuntimeError(
-                "Model has not been fit. Please run .fit() method before .score"
+                (
+                    "Reference FAQ tags have not been set. Please run .set_tags()"
+                    "method before .score"
+                )
             )
-        scoring_function = self._get_updated_scoring_func(scoring_function)
-        scoring_func_kwargs = self._get_updated_scoring_func_args(**scoring_func_kwargs)
-        n_top_matches = self._get_n_top_matches(n_top_matches)
+        scoring_function = self.scoring_function
+        scoring_func_kwargs = self.scoring_func_kwargs
+        n_top_matches = self.n_top_matches
 
         top_matches_list = []
         scoring = {}

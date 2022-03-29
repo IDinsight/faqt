@@ -12,7 +12,7 @@ def load_wv_pretrained_bin(folder, filename):
     TODO: make into a pure function and take ENV as input
     """
 
-    if os.getenv("ENV") == "topic_model":
+    if os.getenv("GITHUB_ACTIONS") == "true":
         bucket = os.getenv("WORD2VEC_BINARY_BUCKET")
         model = KeyedVectors.load_word2vec_format(
             f"s3://{bucket}/{filename}", binary=True

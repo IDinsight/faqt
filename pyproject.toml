@@ -10,5 +10,6 @@ python_files = ["*.py"]
 markers = ["slow: mark test as slow", "fast: mark test as fast"]
 filterwarnings = [
     "error",
-    "ignore::DeprecationWarning"
+    "ignore::DeprecationWarning",
+    "ignore::ResourceWarning"
 ]
