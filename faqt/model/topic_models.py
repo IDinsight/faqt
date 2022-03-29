@@ -39,15 +39,13 @@ class TopicModelScorer:
         A function that takes a list of word vectors (incoming message) as the first
         argument and a vector (tag) as the second argument and returns a similarity
         score as a scalar float.
-        - If not provided, used the `scoring_function.cs_nearest_k_percent_average`
+        If not provided, uses the `scoring_function.cs_nearest_k_percent_average`
         function.
-        - If `None`, then it must be provided when calling the `score` method.
 
         Note: Additional arguments can be passed through `scoring_func_kwargs`
 
     **scoring_func_kwargs: dict, optional
         Additional arguments to be passed to the `scoring_function`.
-        These can also be provided when calling the `.score` method
 
 
     Notes
@@ -112,9 +110,10 @@ class TopicModelScorer:
             return_spellcorrected_text=True,
         )
 
-    def fit(self, topics):
+    def set_tags(self, topics):
         """
-        Fit Topics
+        Set the reference tags for topics. These are the tags that messages will be
+        compared against.
 
         #TODO: Define a Topic type and check that object is Topic-like.
 
@@ -154,20 +153,6 @@ class TopicModelScorer:
             pre-processed input message as a list of tokens.
             See `faqt.preprocessing` for preprocessing functions
 
-        scoring_function: Callable[List[Array], Array[1d]] -> float, optional
-            A function that takes a list of word vectors (incoming message) as the first
-            argument and a vector (tag) as the second argument and returns a similarity
-            score as a scalar float.
-            - If `None`, use the `scoring_function` passed in the contructor.
-            - If `None` and no `scoring_function` passed in contstructor, raise an
-              exception.
-
-            Note: Additional arguments can be passed through `scoring_func_kwargs`
-
-        **scoring_func_kwargs: dict, optional
-            Additional arguments to be passed to the `scoring_function`.
-            These can also be provided when calling the `.score` method
-
         Returns
         -------
         Tuple[Dict[int, float], List[Str]]
@@ -176,10 +161,13 @@ class TopicModelScorer:
         """
         if not hasattr(self, "topics"):
             raise RuntimeError(
-                "Model has not been fit. Please run .fit() method before .score"
+                (
+                    "Topic tags have not been set. Please run .set_tags() method "
+                    "before .score"
+                )
             )
-        scoring_function = self._get_updated_scoring_func(scoring_function)
-        scoring_func_kwargs = self._get_updated_scoring_func_args(**scoring_func_kwargs)
+        scoring_function = self.scoring_function
+        scoring_func_kwargs = self.scoring_func_kwargs
 
         scoring = {}
         inbound_vectors, inbound_spellcorrected = self.model_search(message)
@@ -192,38 +180,6 @@ class TopicModelScorer:
         )
 
         return scoring, inbound_spellcorrected
-
-    def _get_updated_scoring_func(self, my_scoring_func):
-        """
-        Resolve the scoring function to use. If no scoring function
-        was passed in constructor or `.score()` method then raises an exception
-        """
-
-        if my_scoring_func is None:
-            if self.scoring_function is None:
-                raise ValueError(
-                    (
-                        "Must provide `scoring_function` either at init "
-                        "or when calling `.score()`"
-                    )
-                )
-            else:
-                scoring_function = self.scoring_function
-        else:
-            scoring_function = my_scoring_func
-
-        return scoring_function
-
-    def _get_updated_scoring_func_args(self, **my_scoring_func_kwargs):
-        """
-        Updates scoring function arguments passed in constructor with
-        arguments passed in `.score()`
-        """
-
-        scoring_func_kwargs = self.scoring_func_kwargs.copy()
-        scoring_func_kwargs.update(my_scoring_func_kwargs)
-
-        return scoring_func_kwargs
 
 
 def get_scores_for_message(

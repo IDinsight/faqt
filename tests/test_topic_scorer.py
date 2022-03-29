@@ -77,10 +77,10 @@ class TestTopicModelScorer:
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_topics(self, basic_model, input_text):
         tokens = preprocess_text(input_text, {}, 0)
-        basic_model.fit([])
+        basic_model.set_tags([])
         assert len(basic_model.topics) == 0
 
-        matches, a = basic_model.score(tokens, k=10, floor=1)
+        matches, a = basic_model.score(tokens)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -89,11 +89,11 @@ class TestTopicModelScorer:
     )
     def test_basic_model_score_with_topics(self, basic_model, topics, input_text):
 
-        basic_model.fit(topics)
+        basic_model.set_tags(topics)
         assert len(basic_model.topics) == len(topics)
 
         tokens = preprocess_text(input_text, {}, 0)
-        matches, _ = basic_model.score(tokens, k=10, floor=1)
+        matches, _ = basic_model.score(tokens)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
 
@@ -101,13 +101,13 @@ class TestTopicModelScorer:
     def test_glossary_improves_score(
         self, basic_model, extra_words_model, topics, input_text
     ):
-        basic_model.fit(topics)
-        extra_words_model.fit(topics)
+        basic_model.set_tags(topics)
+        extra_words_model.set_tags(topics)
 
         tokens = preprocess_text(input_text, {}, 0)
 
-        scores_basic, _ = basic_model.score(tokens, k=10, floor=1)
-        scores_glossary, _ = extra_words_model.score(tokens, k=10, floor=1)
+        scores_basic, _ = basic_model.score(tokens)
+        scores_glossary, _ = extra_words_model.score(tokens)
 
         if "Blinkdrink" in input_text:
             assert sum(scores_basic.values()) < sum(scores_glossary.values())
@@ -116,4 +116,4 @@ class TestTopicModelScorer:
 
     def test_warning_if_tags_not_in_vocab(self, basic_model, topics_novocab_tags):
         with pytest.warns(RuntimeWarning):
-            basic_model.fit(topics_novocab_tags)
+            basic_model.set_tags(topics_novocab_tags)
