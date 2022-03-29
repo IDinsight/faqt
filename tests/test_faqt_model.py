@@ -42,13 +42,18 @@ class TestFAQScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = FAQScorer(w2v_model)
+        faqt = FAQScorer(w2v_model, n_top_matches=3)
         return faqt
 
     @pytest.fixture
     def hunspell_model(self, w2v_model, hunspell):
         faqt = FAQScorer(
-            w2v_model, hunspell=hunspell, tags_guiding_typos=["music", "food"]
+            w2v_model,
+            hunspell=hunspell,
+            tags_guiding_typos=["music", "food"],
+            n_top_matches=3,
+            k=10,
+            floor=1,
         )
         return faqt
 
@@ -64,10 +69,10 @@ class TestFAQScorer:
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_faq(self, basic_model, input_text):
         tokens = preprocess_text(input_text, {}, 0)
-        basic_model.fit([])
+        basic_model.set_tags([])
         assert len(basic_model.faqs) == 0
 
-        matches, a, b = basic_model.score(tokens, n_top_matches=3)
+        matches, a, b = basic_model.score(tokens)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -75,10 +80,10 @@ class TestFAQScorer:
         sample_messages,
     )
     def test_basic_model_score_with_faqs(self, hunspell_model, faqs, input_text):
-        hunspell_model.fit(faqs)
+        hunspell_model.set_tags(faqs)
         assert len(hunspell_model.faqs) == len(faqs)
         tokens = preprocess_text(input_text, {}, 0)
 
-        matches, a, b = hunspell_model.score(tokens, n_top_matches=3, k=10, floor=1)
+        matches, a, b = hunspell_model.score(tokens)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
