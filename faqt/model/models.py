@@ -169,56 +169,6 @@ class FAQScorer:
 
         return top_matches_list, scoring, inbound_spellcorrected
 
-    def _get_updated_scoring_func(self, my_scoring_func):
-        """
-        Resolve the scoring function to use. If no scoring function
-        was passed in constructor or `.score()` method then raises an exception
-        """
-
-        if my_scoring_func is None:
-            if self.scoring_function is None:
-                raise ValueError(
-                    (
-                        "Must provide `scoring_function` either at init "
-                        "or when calling `.score()`"
-                    )
-                )
-            else:
-                scoring_function = self.scoring_function
-        else:
-            scoring_function = my_scoring_func
-
-        return scoring_function
-
-    def _get_updated_scoring_func_args(self, **my_scoring_func_kwargs):
-        """
-        Updates scoring function arguments passed in constructor with
-        arguments passed in `.score()`
-        """
-
-        scoring_func_kwargs = self.scoring_func_kwargs.copy()
-        scoring_func_kwargs.update(my_scoring_func_kwargs)
-
-        return scoring_func_kwargs
-
-    def _get_n_top_matches(self, n_top_matches):
-        """
-        Get `n_top_matches` by checking argument passed to
-        (1) `.score()` (2) the constructor
-        """
-        if n_top_matches is None:
-            if self.n_top_matches is None:
-                raise ValueError(
-                    (
-                        "`n_top_matches` must be passed either to constructor or "
-                        "the `.score()` method"
-                    )
-                )
-            else:
-                n_top_matches = self.n_top_matches
-
-        return n_top_matches
-
 
 def get_faq_scores_for_message(
     inbound_vectors, faqs, scoring_function, **scoring_func_kwargs
