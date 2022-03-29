@@ -1,0 +1,31 @@
+faq_refresh_data:
+  - faq_id: 1
+    faq_tags: ["rock", "guitar", "melody", "chord"]
+    faq_title: "music"
+    faq_content_to_send: "Where words fail, music speaks"
+  - faq_id: 2
+    faq_tags: ["cheese", "tomato", "bread", "mustard"]
+    faq_content_to_send: "We finish each other's sandwiches"
+    faq_title: "sandwich"
+  - faq_id: 3
+    faq_tags: ["rock", "lake", "mountain", "sky"]
+    faq_content_to_send: "Let's do it. But outside."
+    faq_title: "nature"
+  - faq_id: 4
+    faq_tags: ["trace", "vector", "length", "angle"]
+    faq_content_to_send: "Whenever you can, count"
+    faq_title: "math"
+  - faq_id: 5
+    faq_tags: ["draw", "sing", "exercise", "code"]
+    faq_content_to_send: >
+      When I feel like exercising, 
+      I just lie down until the feeling goes away
+    faq_title: "hobby"
+  - faq_id: 5
+    faq_tags: ["digest", "eat", "chew", "expel"]
+    faq_content_to_send: >
+      Nothing would be more tiresome than eating and drinking 
+      if God had not made them a pleasure as well as a necessity.
+    faq_title: "life"
+
+
