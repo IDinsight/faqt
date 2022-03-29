@@ -5,3 +5,4 @@ isort==5.8.0
 pre-commit==2.11.1
 pytest==6.2.2
 cyhunspell==2.0.2
+smart-open[s3]>=5.0.0

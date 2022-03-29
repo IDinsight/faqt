@@ -1,0 +1,38 @@
+name: FAQT library
+on:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  RunUnitTests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies with Apt Get
+        run: |
+          sudo apt-get update
+          sudo apt-get install python3.8 jq -y
+      - name: Install libraries
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements_dev.txt
+          nltkdownload=`cat <<EOF
+          import nltk
+          nltk.download('stopwords')
+          nltk.download('punkt')
+          EOF`
+          python -c "$nltkdownload"
+      - name: Configure AWS credentials
+        id: creds
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Run Unit Tests
+        env: 
+          WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
+        run: |
+          python -m pytest
+        
