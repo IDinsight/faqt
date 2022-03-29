@@ -15,9 +15,9 @@ def cs_nearest_k_percent_average(list_of_wvs, target_wv, k=100, floor=1):
     ----------
     list_of_wvs : list of vectors (1-D arrays)
     target_wv : vector (1-D array)
-    k : float
+    k : float, optional
         Nearest % of word vectors to capture
-    floor : int
+    floor : int, optional
         Minimum # of word vectors to capture
 
     Returns
