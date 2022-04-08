@@ -7,7 +7,7 @@ from warnings import warn
 
 class KeyedVectorsScorer:
     """
-    Allows setting reference FAQs and scoring new messages against it
+    Allows setting reference tagsets and scoring new messages against it
 
     Parameters
     ----------
@@ -161,7 +161,7 @@ class KeyedVectorsScorer:
         Returns
         -------
         Tuple[List[Tuple[Str, Str]], Dict, List[Str]]
-            First item is a list of (FAQ id, FAQ content) tuples. This will have a
+            First item is a list of (id, content) tuples. This will have a
             max size of `n_top_matches`
             Second item is a Dictionary that shows the scores for each of the tagset
             Third item is the spell corrected tokens for `message`.
