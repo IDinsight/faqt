@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 from faqt.preprocessing import preprocess_text
-from faqt.model import FAQScorer
+from faqt.model import KeyedVectorsScorer
+from faqt.model.models import get_faq_scores_for_message, get_top_n_matches
 from dataclasses import dataclass
 from typing import List
 
@@ -42,12 +43,12 @@ class TestFAQScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = FAQScorer(w2v_model)
+        faqt = KeyedVectorsScorer(w2v_model)
         return faqt
 
     @pytest.fixture
     def hunspell_model(self, w2v_model, hunspell):
-        faqt = FAQScorer(
+        faqt = KeyedVectorsScorer(
             w2v_model,
             hunspell=hunspell,
             tags_guiding_typos=["music", "food"],
@@ -67,9 +68,10 @@ class TestFAQScorer:
     def test_basic_model_score_with_empty_faq(self, basic_model, input_text):
         tokens = preprocess_text(input_text, {}, 0)
         basic_model.set_tags([])
-        assert len(basic_model.faqs) == 0
+        assert len(basic_model.tagset) == 0
 
-        matches, a, b = basic_model.score(tokens)
+        a, b = basic_model.score(tokens, get_faq_scores_for_message)
+        matches = get_top_n_matches(a, basic_model.n_top_matches)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -78,9 +80,27 @@ class TestFAQScorer:
     )
     def test_basic_model_score_with_faqs(self, hunspell_model, faqs, input_text):
         hunspell_model.set_tags(faqs)
-        assert len(hunspell_model.faqs) == len(faqs)
+        assert len(hunspell_model.tagset) == len(faqs)
         tokens = preprocess_text(input_text, {}, 0)
 
-        matches, a, b = hunspell_model.score(tokens)
+        a, b = hunspell_model.score(tokens, get_faq_scores_for_message)
+        matches = get_top_n_matches(a, hunspell_model.n_top_matches)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
+
+    @pytest.mark.parametrize("input_text", sample_messages)
+    def test_dict_faq_input(self, basic_model, input_text):
+        tokens = preprocess_text(input_text, {}, 0)
+
+        faq_tagset = [
+            {
+                "faq_id": 1,
+                "faq_title": "title test",
+                "faq_content_to_send": "cows moo",
+                "tags": ["moo", "cow"],
+            }
+        ]
+        basic_model.set_tags(faq_tagset)
+
+        a, b = basic_model.score(tokens, get_faq_scores_for_message)
+        matches = get_top_n_matches(a, basic_model.n_top_matches)

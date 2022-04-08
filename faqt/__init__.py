@@ -1,3 +1,3 @@
-from .model.models import FAQScorer
+from .model.models import KeyedVectorsScorer
 from . import preprocessing
 from . import utils

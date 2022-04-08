@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import yaml
 from faqt.preprocessing import preprocess_text
-from faqt.model import TopicModelScorer
+from faqt.model import KeyedVectorsScorer
+from faqt.model.models import get_topic_scores_for_message
 from dataclasses import dataclass
 from typing import List
 
@@ -45,12 +46,12 @@ class TestTopicModelScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        model = TopicModelScorer(w2v_model)
+        model = KeyedVectorsScorer(w2v_model)
         return model
 
     @pytest.fixture
     def extra_words_model(self, w2v_model, hunspell):
-        model = TopicModelScorer(
+        model = KeyedVectorsScorer(
             w2v_model, glossary={"blinkdrink": {"blink": 0.5, "drunk": 0.5}}
         )
         return model
@@ -78,9 +79,9 @@ class TestTopicModelScorer:
     def test_basic_model_score_with_empty_topics(self, basic_model, input_text):
         tokens = preprocess_text(input_text, {}, 0)
         basic_model.set_tags([])
-        assert len(basic_model.topics) == 0
+        assert len(basic_model.tagset) == 0
 
-        matches, a = basic_model.score(tokens)
+        matches, a = basic_model.score(tokens, get_topic_scores_for_message)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -90,10 +91,10 @@ class TestTopicModelScorer:
     def test_basic_model_score_with_topics(self, basic_model, topics, input_text):
 
         basic_model.set_tags(topics)
-        assert len(basic_model.topics) == len(topics)
+        assert len(basic_model.tagset) == len(topics)
 
         tokens = preprocess_text(input_text, {}, 0)
-        matches, _ = basic_model.score(tokens)
+        matches, _ = basic_model.score(tokens, get_topic_scores_for_message)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
 
@@ -106,8 +107,10 @@ class TestTopicModelScorer:
 
         tokens = preprocess_text(input_text, {}, 0)
 
-        scores_basic, _ = basic_model.score(tokens)
-        scores_glossary, _ = extra_words_model.score(tokens)
+        scores_basic, _ = basic_model.score(tokens, get_topic_scores_for_message)
+        scores_glossary, _ = extra_words_model.score(
+            tokens, get_topic_scores_for_message
+        )
 
         if "Blinkdrink" in input_text:
             assert sum(scores_basic.values()) < sum(scores_glossary.values())
