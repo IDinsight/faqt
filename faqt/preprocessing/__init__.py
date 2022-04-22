@@ -1,5 +1,4 @@
-"""
-Library of pre-processing functions that take a message string and
-convert it to a set of tokens.
-"""
-from .text_processing import preprocess_text
+from faqt.preprocessing.methods import (
+    preprocess_text_for_word_embedding,
+    preprocess_text_for_keyword_rule
+)
