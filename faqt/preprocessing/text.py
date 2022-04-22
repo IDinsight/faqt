@@ -16,7 +16,10 @@ def _generate_regex_dashed_url(n_min_dashed_words_url):
         don't care to extract this as a content summary
     """
     word_and_dash = "[a-z0-9]+-"
-    regexp = r"\/(" + n_min_dashed_words_url * word_and_dash + r"[a-z0-9-]*)(?:\/|\.|$)"
+    regexp = (
+        r"\/(" + (n_min_dashed_words_url - 1) * word_and_dash + r"["
+        r"a-z0-9-]*)(?:\/|\.|$)"
+    )
     return regexp
 
 
@@ -30,7 +33,8 @@ def process_urls(content, n_min_dashed_words_url):
         Text WhatsApp message
     n_min_dashed_words_url : int
         The number of words that must be separated by dashes in a URL, to treat the
-        text as an actual relevant content summary
+        text as an actual relevant content summary. We only allow 2 or more
+        words to be extracted
 
     Returns
     -------
@@ -49,6 +53,9 @@ def process_urls(content, n_min_dashed_words_url):
             *Buhari Fails To Recognise Own Handwriting On NTA (Video)* buhari-fails-to-
             recognise-own-handwriting-on-nta-video
     """
+    if n_min_dashed_words_url <= 1:
+        n_min_dashed_words_url = 2
+
     content = urllib.parse.unquote(content)
 
     urls = re.findall(r"((?:https?:\/\/|www)(?:[^ ]+))", content)
