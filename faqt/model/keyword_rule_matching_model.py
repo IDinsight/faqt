@@ -4,6 +4,18 @@ from typing import List
 
 @dataclass
 class KeywordRule:
+    """Dataclass for keyword rule
+
+    Parameters
+    ------
+    include : List[str]
+        List of keywords that must be present. Must be pre-processed the same
+        way as messages.
+    exclude : List[str]
+        List of keywords that must not be present. Must be pre-processed the
+        same way as messages.
+    """
+
     include: List[str] = field(default_factory=list)
     exclude: List[str] = field(default_factory=list)
 
@@ -13,6 +25,14 @@ class KeywordRule:
             raise ValueError(
                 "Must provide nonempty list for at least one of `include` and "
                 "`exclude`."
+            )
+
+        intersection = set(self.include).intersection(set(self.exclude))
+        if len(intersection) > 0:
+            raise Warning(
+                f"Include and Exclude both contain the following: "
+                f"{list(intersection)}. This rule will ALWAYS evaluate to "
+                f"False."
             )
 
 
@@ -35,10 +55,8 @@ def evaluate_keyword_rule(message, rule):
     bool
 
     """
-    contains_all_includes = all(
-        include in message for include in rule.include)
-    contains_no_excludes = all(
-        exclude not in message for exclude in rule.exclude)
+    contains_all_includes = all(include in message for include in rule.include)
+    contains_no_excludes = all(exclude not in message for exclude in rule.exclude)
 
     return contains_all_includes and contains_no_excludes
 
@@ -63,9 +81,6 @@ def evaluate_keyword_rules(message, keyword_rules):
         List of booleans of length `len(rules)`. `evaluations[i]` is
         the evaluation of `rules[i]` on `message`
     """
-    evaluated_rules = [
-        evaluate_keyword_rule(message, rule)
-        for rule in keyword_rules
-    ]
+    evaluated_rules = [evaluate_keyword_rule(message, rule) for rule in keyword_rules]
 
     return evaluated_rules
