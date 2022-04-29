@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from faqt.preprocessing import preprocess_text
+from faqt.preprocessing import preprocess_text_for_word_embedding
 from faqt.model import TopicModelScorer
 from dataclasses import dataclass
 from typing import List
@@ -76,7 +76,7 @@ class TestTopicModelScorer:
 
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_topics(self, basic_model, input_text):
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
         basic_model.set_tags([])
         assert len(basic_model.topics) == 0
 
@@ -92,7 +92,7 @@ class TestTopicModelScorer:
         basic_model.set_tags(topics)
         assert len(basic_model.topics) == len(topics)
 
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
         matches, _ = basic_model.score(tokens)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
@@ -104,7 +104,7 @@ class TestTopicModelScorer:
         basic_model.set_tags(topics)
         extra_words_model.set_tags(topics)
 
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
 
         scores_basic, _ = basic_model.score(tokens)
         scores_glossary, _ = extra_words_model.score(tokens)

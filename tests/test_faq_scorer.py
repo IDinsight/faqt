@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from faqt.preprocessing import preprocess_text
+from faqt.preprocessing import preprocess_text_for_word_embedding
 from faqt.model import FAQScorer
 from dataclasses import dataclass
 from typing import List
@@ -65,7 +65,7 @@ class TestFAQScorer:
 
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_faq(self, basic_model, input_text):
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
         basic_model.set_tags([])
         assert len(basic_model.faqs) == 0
 
@@ -79,7 +79,7 @@ class TestFAQScorer:
     def test_basic_model_score_with_faqs(self, hunspell_model, faqs, input_text):
         hunspell_model.set_tags(faqs)
         assert len(hunspell_model.faqs) == len(faqs)
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
 
         matches, a, b = hunspell_model.score(tokens)
         expected_bool = len(tokens) != 0
