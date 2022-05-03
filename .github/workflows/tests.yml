@@ -1,5 +1,6 @@
 name: FAQT library
 on:
+  workflow_dispatch:
   push:
     branches:
       - "**"
@@ -35,7 +36,7 @@ jobs:
           WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
         run: |
           coverage run -m pytest
-          coverage lcov
+          coverage lcov --include="faqt/*"
       - name: Coveralls Test Coverags
         uses: coverallsapp/github-action@master
         with:
