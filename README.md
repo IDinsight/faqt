@@ -2,7 +2,7 @@
 
 `FAQT` matches messages to sets of tags and return similarity scores.
 
-[![Coverage Status](https://coveralls.io/repos/github/IDinsight/faqt/badge.svg?branch=main)](https://coveralls.io/github/IDinsight/faqt?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/IDinsight/faqt/badge.svg?t=OJGPBt)](https://coveralls.io/github/IDinsight/faqt?branch=main)
 ![Unit Tests](https://github.com/IDinsight/faqt/actions/workflows/tests.yml/badge.svg)
 
 ## How it works
