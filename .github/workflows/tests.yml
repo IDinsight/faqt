@@ -34,5 +34,11 @@ jobs:
         env: 
           WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
         run: |
-          python -m pytest
+          coverage run -m pytest
+          coverage lcov
+      - name: Coveralls Test Coverags
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.lcov
         
