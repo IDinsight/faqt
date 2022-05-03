@@ -37,7 +37,7 @@ jobs:
         run: |
           coverage run -m pytest
           coverage lcov --include="faqt/*"
-      - name: Coveralls Test Coverags
+      - name: Coveralls Test Coverage
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
