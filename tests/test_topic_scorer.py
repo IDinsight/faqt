@@ -6,7 +6,11 @@ from faqt.preprocessing import preprocess_text
 from faqt.model import KeyedVectorsScorer
 from dataclasses import dataclass
 from typing import List
-from .utils import get_top_n_matches, get_topic_scores_for_message
+from tests.utils import (
+    get_top_n_matches,
+    get_topic_scores_for_message,
+    _filter_topic_scores_by_threshold,
+)
 
 pytestmark = pytest.mark.slow
 
@@ -84,7 +88,7 @@ class TestTopicModelScorer:
         tag_scores, a = basic_model.score(tokens)
 
         scores = get_topic_scores_for_message(tokens, [], tag_scores)
-        matches = get_top_n_matches(scores, basic_model.n_top_matches)
+        matches = _filter_topic_scores_by_threshold(scores, 0)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -100,7 +104,7 @@ class TestTopicModelScorer:
         tag_scores, _ = basic_model.score(tokens)
 
         scores = get_topic_scores_for_message(tokens, topics, tag_scores)
-        matches = get_top_n_matches(scores, basic_model.n_top_matches)
+        matches = _filter_topic_scores_by_threshold(scores, 0)
 
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool

@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import numpy as np
 from gensim.models import KeyedVectors
 
 
@@ -48,10 +49,43 @@ def get_topic_scores_for_message(inbound_vectors, topics, scores):
     """
 
     scoring = {}
+
     for topic, all_tag_scores in zip(topics, scores):
-        scoring[topic._id] = (np.max(all_tag_scores) + np.mean(all_tag_scores)) / 2
+        cs_scores = list(all_tag_scores.values())
+        scoring[topic._id] = (np.max(cs_scores) + np.mean(cs_scores)) / 2
 
     return scoring
+
+
+def _filter_topic_scores_by_threshold(topic_scores, threshold):
+    """
+
+    Parameters
+    ----------
+    topic_scores : dict[int, float]
+        With key as topic_id and value as scores
+    threshold : dict or float
+        If dict: must have same keys as `topic_scores` and values as thresholds for
+        each topic.
+        If float: the same threshold is used for all topics
+
+    Returns
+    -------
+    dict[int, float]
+        With key as topic_id and value as scores
+    """
+
+    if isinstance(threshold, dict):
+        thresholded_scores = {}
+        for topic, score in topic_scores.items():
+            if threshold[topic] < score:
+                thresholded_scores[topic] = score
+    else:
+        thresholded_scores = {
+            topic: score for topic, score in topic_scores.items() if score > threshold
+        }
+
+    return thresholded_scores
 
 
 def get_top_n_matches(scoring, n_top_matches):

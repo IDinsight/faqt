@@ -8,7 +8,7 @@ from faqt.preprocessing import preprocess_text
 from faqt.model import KeyedVectorsScorer
 from dataclasses import dataclass
 from typing import List
-from .utils import get_top_n_matches
+from tests.utils import get_top_n_matches
 
 pytestmark = pytest.mark.slow
 
