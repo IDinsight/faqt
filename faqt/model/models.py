@@ -112,9 +112,8 @@ class KeyedVectorsScorer:
 
         Parameters
         ----------
-        tagset: List[DataClass] or List[Dict]
-            List of DataClass-like objects or dictionary.
-            Must have attribute or key containing 'tag'
+        tagset: List[List[str]]
+            List of list-likes of tags
             Tags are used to match incoming messages
 
         Returns
