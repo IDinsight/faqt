@@ -1,7 +1,5 @@
-import numpy as np
 from ..scoring_functions import cs_nearest_k_percent_average
 from .embeddings import model_search_word, model_search
-from ..utils import AttributeDict
 from warnings import warn
 
 
@@ -59,7 +57,8 @@ class KeyedVectorsScorer:
         tags_guiding_typos=None,
         n_top_matches=3,
         scoring_function=cs_nearest_k_percent_average,
-        **scoring_func_kwargs,
+        scoring_func_kwargs={},
+        summary_function_kwargs={},
     ):
         self.w2v_model = w2v_model
 
@@ -113,25 +112,20 @@ class KeyedVectorsScorer:
 
         Parameters
         ----------
-        tagset: List[DataClass]
-            List of DataClass-like objects.
-            Must have attribute containing 'tag'
+        tagset: List[DataClass] or List[Dict]
+            List of DataClass-like objects or dictionary.
+            Must have attribute or key containing 'tag'
             Tags are used to match incoming messages
-
 
         Returns
         -------
         self
         """
+        tagset_wvs = []
         if len(tagset) != 0:
-            if isinstance(tagset[0], dict):
-                tagset = list(map(lambda x: AttributeDict(x), tagset))
-
-            tag_attribute = [x for x in dir(tagset[0]) if "tag" in x][0]
-
             for tags in tagset:
-                tags.tags_wvs = {}
-                for tag in getattr(tags, tag_attribute):
+                tags_wvs = {}
+                for tag in tags:
                     tag_wv = self.model_search_word(tag)
                     if tag_wv is None:
                         warn(
@@ -139,13 +133,15 @@ class KeyedVectorsScorer:
                             RuntimeWarning,
                         )
                     else:
-                        tags.tags_wvs[tag] = tag_wv
+                        tags_wvs[tag] = tag_wv
+                tagset_wvs.append(tags_wvs)
 
         self.tagset = tagset
+        self.tagset_wvs = tagset_wvs
 
         return self
 
-    def score(self, message, summary_function):
+    def score(self, message):
         """
         Scores a gives message and returns matches from tagset.
 
@@ -155,18 +151,13 @@ class KeyedVectorsScorer:
             pre-processed input message as a list of tokens.
             See `faqt.preprocessing` for preprocessing functions
 
-        summary_function: Function
-            Function for scoring
-
         Returns
         -------
-        Tuple[List[Tuple[Str, Str]], Dict, List[Str]]
-            First item is a list of (id, content) tuples. This will have a
-            max size of `n_top_matches`
-            Second item is a Dictionary that shows the scores for each of the tagset
-            Third item is the spell corrected tokens for `message`.
+        Tuple[List[Dict], List[Str]]
+            First item is a list of dictionaries of score assigned to each tag in each tagset
+            Second item is the spell corrected tokens for `message`.
         """
-        if not hasattr(self, "tagset"):
+        if not hasattr(self, "tagset_wvs"):
             raise RuntimeError(
                 (
                     "Reference tags have not been set. Please run .set_tags()"
@@ -176,15 +167,23 @@ class KeyedVectorsScorer:
         scoring_function = self.scoring_function
         scoring_func_kwargs = self.scoring_func_kwargs
 
-        scoring = {}
+        scoring = []
         inbound_vectors, inbound_spellcorrected = self.model_search(message)
 
         if len(inbound_vectors) == 0:
             return scoring, ""
 
-        scoring = summary_function(
-            inbound_vectors, self.tagset, scoring_function, **scoring_func_kwargs
-        )
+        for tags_wvs in self.tagset_wvs:
+            all_tag_scores = {}
+            for tag, tag_wv in tags_wvs.items():
+                if tag_wv is not None:
+                    all_tag_scores[tag] = scoring_function(
+                        inbound_vectors, tag_wv, **scoring_func_kwargs
+                    )
+                else:
+                    all_tag_scores[tag] = 0
+
+            scoring.append(all_tag_scores)
 
         return scoring, inbound_spellcorrected
 
@@ -219,118 +218,3 @@ class KeyedVectorsScorer:
         scoring_func_kwargs.update(my_scoring_func_kwargs)
 
         return scoring_func_kwargs
-
-
-def get_faq_scores_for_message(
-    inbound_vectors, faqs, scoring_function, **scoring_func_kwargs
-):
-    """
-    Returns scores for the inbound vectors against each faq
-
-    Parameters
-    ----------
-    inbound_vectors: List[Array]
-        List of inbound tokens as word vectors
-    faqs: List[FAQ]
-        A list of faq-like objects. Each FAQ object must contain word vectors for
-        each tags as a dictionary under `FAQ.tags_wvs`
-
-    Returns
-    -------
-    Dict[int, Dict]
-        A Dictionary with `faq_id` as key. Values: faq details including scores
-        for each tag and an `overall_score`
-    """
-
-    scoring = {}
-    for faq in faqs:
-        scoring[faq.faq_id] = {}
-        scoring[faq.faq_id]["faq_title"] = faq.faq_title
-        scoring[faq.faq_id]["faq_content_to_send"] = faq.faq_content_to_send
-        scoring[faq.faq_id]["tag_cs"] = {}
-
-        for tag, tag_wv in faq.tags_wvs.items():
-            if tag_wv is not None:
-                scoring[faq.faq_id]["tag_cs"][tag] = scoring_function(
-                    inbound_vectors, tag_wv, **scoring_func_kwargs
-                )
-            else:
-                scoring[faq.faq_id]["tag_cs"][tag] = 0
-
-        cs_values = list(scoring[faq.faq_id]["tag_cs"].values())
-        scoring[faq.faq_id]["overall_score"] = (min(cs_values) + np.mean(cs_values)) / 2
-
-    return scoring
-
-
-def get_topic_scores_for_message(
-    inbound_vectors, topics, scoring_function, **scoring_func_kwargs
-):
-    """
-    Returns scores for the inbound vectors against each topic
-
-    Parameters
-    ----------
-    inbound_vectors: List[Array]
-        List of inbound tokens as word vectors
-    topics: List[Topics]
-        A list of Topic-like objects. Each Topic object must contain word vectors for
-        each tags as a dictionary under `Topic.tags_wvs`
-
-    Returns
-    -------
-    Dict[int, float]
-        A Dictionary with `_id` as key and similarity score as value
-    """
-
-    scoring = {}
-    for topic in topics:
-        all_tag_scores = []
-        for tag, tag_wv in topic.tags_wvs.items():
-            if tag_wv is not None:
-                tag_score = scoring_function(
-                    inbound_vectors, tag_wv, **scoring_func_kwargs
-                )
-            else:
-                tag_score = 0
-            all_tag_scores.append(tag_score)
-
-        if len(all_tag_scores) == 0:
-            raise RuntimeError("None of the tags were found in vocab")
-
-        scoring[topic._id] = (np.max(all_tag_scores) + np.mean(all_tag_scores)) / 2
-
-    return scoring
-
-
-def get_top_n_matches(scoring, n_top_matches):
-    """
-    Gives a list of scores for each FAQ, return the top `n_top_matches` FAQs
-
-    Parameters
-    ----------
-    scoring: Dict[int, Dict]
-        Dict with faq_id as key and faq details and scores as values.
-        See return value of `get_faq_scores_for_message`.
-    n_top_matches: int
-        the number of top matches to return
-
-    Returns
-    -------
-    List[Tuple(int, str)]
-        A list of tuples of (faq_id, faq_content_to_send)._
-
-    """
-    matched_faq_titles = set()
-    # Sort and copy over top matches
-    top_matches_list = []
-    for id in sorted(scoring, key=lambda x: scoring[x]["overall_score"], reverse=True):
-        if scoring[id]["faq_title"] not in matched_faq_titles:
-            top_matches_list.append(
-                (scoring[id]["faq_title"], scoring[id]["faq_content_to_send"])
-            )
-            matched_faq_titles.add(scoring[id]["faq_title"])
-
-        if len(matched_faq_titles) == n_top_matches:
-            break
-    return top_matches_list

@@ -4,9 +4,9 @@ import pytest
 import yaml
 from faqt.preprocessing import preprocess_text
 from faqt.model import KeyedVectorsScorer
-from faqt.model.models import get_topic_scores_for_message
 from dataclasses import dataclass
 from typing import List
+from .utils import get_top_n_matches, get_topic_scores_for_message
 
 pytestmark = pytest.mark.slow
 
@@ -81,7 +81,10 @@ class TestTopicModelScorer:
         basic_model.set_tags([])
         assert len(basic_model.tagset) == 0
 
-        matches, a = basic_model.score(tokens, get_topic_scores_for_message)
+        tag_scores, a = basic_model.score(tokens)
+
+        scores = get_topic_scores_for_message(tokens, [], tag_scores)
+        matches = get_top_n_matches(scores, basic_model.n_top_matches)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -90,11 +93,15 @@ class TestTopicModelScorer:
     )
     def test_basic_model_score_with_topics(self, basic_model, topics, input_text):
 
-        basic_model.set_tags(topics)
+        basic_model.set_tags([topic.tags for topic in topics])
         assert len(basic_model.tagset) == len(topics)
 
         tokens = preprocess_text(input_text, {}, 0)
-        matches, _ = basic_model.score(tokens, get_topic_scores_for_message)
+        tag_scores, _ = basic_model.score(tokens)
+
+        scores = get_topic_scores_for_message(tokens, topics, tag_scores)
+        matches = get_top_n_matches(scores, basic_model.n_top_matches)
+
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
 
@@ -102,14 +109,17 @@ class TestTopicModelScorer:
     def test_glossary_improves_score(
         self, basic_model, extra_words_model, topics, input_text
     ):
-        basic_model.set_tags(topics)
-        extra_words_model.set_tags(topics)
+        basic_model.set_tags([topic.tags for topic in topics])
+        extra_words_model.set_tags([topic.tags for topic in topics])
 
         tokens = preprocess_text(input_text, {}, 0)
 
-        scores_basic, _ = basic_model.score(tokens, get_topic_scores_for_message)
-        scores_glossary, _ = extra_words_model.score(
-            tokens, get_topic_scores_for_message
+        tag_scores_basic, _ = basic_model.score(tokens)
+        scores_basic = get_topic_scores_for_message(tokens, topics, tag_scores_basic)
+
+        tag_scores_glossary, _ = extra_words_model.score(tokens)
+        scores_glossary = get_topic_scores_for_message(
+            tokens, topics, tag_scores_glossary
         )
 
         if "Blinkdrink" in input_text:
@@ -119,4 +129,4 @@ class TestTopicModelScorer:
 
     def test_warning_if_tags_not_in_vocab(self, basic_model, topics_novocab_tags):
         with pytest.warns(RuntimeWarning):
-            basic_model.set_tags(topics_novocab_tags)
+            basic_model.set_tags([topic.tags for topic in topics_novocab_tags])

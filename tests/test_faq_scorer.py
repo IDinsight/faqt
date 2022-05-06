@@ -1,12 +1,14 @@
 from pathlib import Path
 
+import numpy as np
+
 import pytest
 import yaml
 from faqt.preprocessing import preprocess_text
 from faqt.model import KeyedVectorsScorer
-from faqt.model.models import get_faq_scores_for_message, get_top_n_matches
 from dataclasses import dataclass
 from typing import List
+from .utils import get_top_n_matches
 
 pytestmark = pytest.mark.slow
 
@@ -66,12 +68,26 @@ class TestFAQScorer:
 
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_faq(self, basic_model, input_text):
+
         tokens = preprocess_text(input_text, {}, 0)
         basic_model.set_tags([])
         assert len(basic_model.tagset) == 0
 
-        a, b = basic_model.score(tokens, get_faq_scores_for_message)
-        matches = get_top_n_matches(a, basic_model.n_top_matches)
+        a, b = basic_model.score(tokens)
+
+        scoring = {}
+        for faq, scores in zip(basic_model.tagset, a):
+            scoring[faq.faq_id] = {}
+            scoring[faq.faq_id]["faq_title"] = faq.faq_title
+            scoring[faq.faq_id]["faq_content_to_send"] = faq.faq_content_to_send
+            scoring[faq.faq_id]["tag_cs"] = scores
+
+            cs_values = list(scoring[faq.faq_id]["tag_cs"].values())
+            scoring[faq.faq_id]["overall_score"] = (
+                min(cs_values) + np.mean(cs_values)
+            ) / 2
+
+        matches = get_top_n_matches(scoring, basic_model.n_top_matches)
         assert bool(matches) is False
 
     @pytest.mark.parametrize(
@@ -79,28 +95,25 @@ class TestFAQScorer:
         sample_messages,
     )
     def test_basic_model_score_with_faqs(self, hunspell_model, faqs, input_text):
-        hunspell_model.set_tags(faqs)
+
+        hunspell_model.set_tags([faq.faq_tags for faq in faqs])
         assert len(hunspell_model.tagset) == len(faqs)
         tokens = preprocess_text(input_text, {}, 0)
 
-        a, b = hunspell_model.score(tokens, get_faq_scores_for_message)
-        matches = get_top_n_matches(a, hunspell_model.n_top_matches)
+        a, b = hunspell_model.score(tokens)
+
+        scoring = {}
+        for faq, scores in zip(faqs, a):
+            scoring[faq.faq_id] = {}
+            scoring[faq.faq_id]["faq_title"] = faq.faq_title
+            scoring[faq.faq_id]["faq_content_to_send"] = faq.faq_content_to_send
+            scoring[faq.faq_id]["tag_cs"] = scores
+
+            cs_values = list(scoring[faq.faq_id]["tag_cs"].values())
+            scoring[faq.faq_id]["overall_score"] = (
+                min(cs_values) + np.mean(cs_values)
+            ) / 2
+
+        matches = get_top_n_matches(scoring, hunspell_model.n_top_matches)
         expected_bool = len(tokens) != 0
         assert bool(matches) is expected_bool
-
-    @pytest.mark.parametrize("input_text", sample_messages)
-    def test_dict_faq_input(self, basic_model, input_text):
-        tokens = preprocess_text(input_text, {}, 0)
-
-        faq_tagset = [
-            {
-                "faq_id": 1,
-                "faq_title": "title test",
-                "faq_content_to_send": "cows moo",
-                "tags": ["moo", "cow"],
-            }
-        ]
-        basic_model.set_tags(faq_tagset)
-
-        a, b = basic_model.score(tokens, get_faq_scores_for_message)
-        matches = get_top_n_matches(a, basic_model.n_top_matches)
