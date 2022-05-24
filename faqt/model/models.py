@@ -153,8 +153,8 @@ class KeyedVectorsScorer:
         Returns
         -------
         Tuple[List[Dict], List[Str]]
-            First item is a list of dictionaries of score assigned to each tag in each tagset
-            Second item is the spell corrected tokens for `message`.
+            First item is a list of dictionaries of score assigned to each tag in each
+            tagset. Second item is the spell corrected tokens for `message`.
         """
         if not hasattr(self, "tagset_wvs"):
             raise RuntimeError(
@@ -185,35 +185,3 @@ class KeyedVectorsScorer:
             scoring.append(all_tag_scores)
 
         return scoring, inbound_spellcorrected
-
-    def _get_updated_scoring_func(self, my_scoring_func):
-        """
-        Resolve the scoring function to use. If no scoring function
-        was passed in constructor or `.score()` method then raises an exception
-        """
-
-        if my_scoring_func is None:
-            if self.scoring_function is None:
-                raise ValueError(
-                    (
-                        "Must provide `scoring_function` either at init "
-                        "or when calling `.score()`"
-                    )
-                )
-            else:
-                scoring_function = self.scoring_function
-        else:
-            scoring_function = my_scoring_func
-
-        return scoring_function
-
-    def _get_updated_scoring_func_args(self, **my_scoring_func_kwargs):
-        """
-        Updates scoring function arguments passed in constructor with
-        arguments passed in `.score()`
-        """
-
-        scoring_func_kwargs = self.scoring_func_kwargs.copy()
-        scoring_func_kwargs.update(my_scoring_func_kwargs)
-
-        return scoring_func_kwargs
