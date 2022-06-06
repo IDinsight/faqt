@@ -47,6 +47,7 @@ class KeyedVectorsScorer:
     * w2v binary must contain prenormalized vectors. This is to reduce operations
       needed when calculating distance. See script in `faqt.scripts` to prenormalize
       your vectors.
+    * A tagset is a collection of words (tags) designated to match incoming messages
     """
 
     def __init__(
@@ -58,7 +59,6 @@ class KeyedVectorsScorer:
         n_top_matches=3,
         scoring_function=cs_nearest_k_percent_average,
         scoring_func_kwargs={},
-        summary_function_kwargs={},
     ):
         self.w2v_model = w2v_model
 
@@ -108,7 +108,7 @@ class KeyedVectorsScorer:
         """
         Set the tagset that messages should be matched against
 
-        #TODO: Define tagset type and check that object is tagset-like.
+        A tagset is a collection of words (tags) designated to match incoming messages
 
         Parameters
         ----------
@@ -142,7 +142,7 @@ class KeyedVectorsScorer:
 
     def score(self, message):
         """
-        Scores a gives message and returns matches from tagset.
+        Scores a given message against tagsets.
 
         Parameters
         ----------
