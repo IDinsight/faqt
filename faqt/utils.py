@@ -9,6 +9,12 @@ import pandas as pd
 import yaml
 
 
+class AttributeDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttributeDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 def load_yaml_data(folder, filename):
     """
     Load generic yaml files from data and return dictionary
