@@ -2,13 +2,16 @@
 
 `FAQT` matches messages to sets of tags and return similarity scores.
 
+[![Coverage Status](https://coveralls.io/repos/github/IDinsight/faqt/badge.svg?t=OJGPBt)](https://coveralls.io/github/IDinsight/faqt?branch=main)
+![Unit Tests](https://github.com/IDinsight/faqt/actions/workflows/tests.yml/badge.svg)
+
 ## How it works
 
 Say you have 3 sets of keyword or tags, each representing some predefined content or a topic:
 
-* 1: {"river", "lake", "mountains"}
-* 2: {"movie", "dinner", "walk"}
-* 3: {"aircraft", "terminal", "boarding"}
+-   1: {"river", "lake", "mountains"}
+-   2: {"movie", "dinner", "walk"}
+-   3: {"aircraft", "terminal", "boarding"}
 
 And you want to see how well the messages "i went camping in the woods last weekend" matches the tags.
 
@@ -19,7 +22,7 @@ FAQT will return similarity scores for the message against each set of tags:
 
 Eventually `FAQT` will be open-source an available from pypi. In the meantime, you can use `pip` to install it from github:
 
-`pip install  git+https://@github.com/IDinsight/faqt.git@main`
+`pip install git+https://@github.com/IDinsight/faqt.git@main`
 
 It will prompt you for your username and password since the repository is private.
 
@@ -27,10 +30,10 @@ It will prompt you for your username and password since the repository is privat
 
 If you will be developing on `FAQT`, you should clone the repo and run `pip install -e .` within the repo.
 
-
 ## Basic Usage
 
 `FAQT` has three components:
+
 1. `faqt.preprocessing` - contains functions to preprocess free text and convert them to tokens before sending it to the model
 2. `faqt.model` - contains classes with functions to load or update sets of tags, and score messages against the sets of tags.
 3. `faqt.scoring_functions` - contains functions that take a set of tokens from a message and a set of tags and return a similarity score.
@@ -44,7 +47,7 @@ from faqt.model import FAQScorer
 
 ## Must load and send a w2v binary using gensim
 w2v_model = load_wv_model()
-tags = {	
+tags = {
             1: {"river", "lake", "mountains"},
             2: {"movie", "dinner", "walk"}
             3: {"aircraft", "terminal", "boarding"}

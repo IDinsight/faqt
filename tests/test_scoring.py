@@ -1,14 +1,11 @@
 from pathlib import Path
 
-import numpy as np
-
 import pytest
 import yaml
-from faqt.preprocessing import preprocess_text
 from faqt.model import KeyedVectorsScorer
+from faqt.preprocessing import preprocess_text_for_word_embedding
 from dataclasses import dataclass
 from typing import List
-from tests.utils import get_top_n_matches
 
 pytestmark = pytest.mark.slow
 
@@ -69,7 +66,7 @@ class TestTagsetScorer:
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_tags(self, basic_model, input_text):
 
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
         basic_model.set_tags([])
         assert len(basic_model.tagset) == 0
 
@@ -87,7 +84,7 @@ class TestTagsetScorer:
 
         hunspell_model.set_tags([tagset.tags for tagset in tagsets])
         assert len(hunspell_model.tagset) == len(tagsets)
-        tokens = preprocess_text(input_text, {}, 0)
+        tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
 
         scores, _ = hunspell_model.score(tokens)
 
