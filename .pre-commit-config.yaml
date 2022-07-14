@@ -29,4 +29,7 @@ repos:
       exclude: ^(docs|playground|tests)
       entry: interrogate
       args: [-v, --fail-under=95, --ignore-module]
-
+- repo: https://github.com/kynan/nbstripout
+  rev: 0.5.0
+  hooks:
+    - id: nbstripout

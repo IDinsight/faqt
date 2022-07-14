@@ -10,3 +10,4 @@ smart-open[s3]>=5.0.0
 sphinx==4.5.0
 sphinx-material==0.0.35
 numpydoc==1.2
+jupyterlab==3.4.3
