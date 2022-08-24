@@ -31,7 +31,7 @@ def load_wv_pretrained_bin(folder, filename):
 
 def get_topic_scores_for_message(inbound_vectors, topics, scores):
     """
-    Returns scores for the inbound vectors against each topic
+    Returns tag_scores for the inbound vectors against each topic
 
     Parameters
     ----------
@@ -40,7 +40,7 @@ def get_topic_scores_for_message(inbound_vectors, topics, scores):
     topics: List[Topics]
         A list of Topic-like objects.
     scores: List[Dict]
-        A list of CS scores for each set of topic tags
+        A list of CS tag_scores for each set of topic tags
 
     Returns
     -------
@@ -63,7 +63,7 @@ def _filter_topic_scores_by_threshold(topic_scores, threshold):
     Parameters
     ----------
     topic_scores : dict[int, float]
-        With key as topic_id and value as scores
+        With key as topic_id and value as tag_scores
     threshold : dict or float
         If dict: must have same keys as `topic_scores` and values as thresholds for
         each topic.
@@ -72,7 +72,7 @@ def _filter_topic_scores_by_threshold(topic_scores, threshold):
     Returns
     -------
     dict[int, float]
-        With key as topic_id and value as scores
+        With key as topic_id and value as tag_scores
     """
 
     if isinstance(threshold, dict):
@@ -90,12 +90,12 @@ def _filter_topic_scores_by_threshold(topic_scores, threshold):
 
 def get_top_n_matches(scoring, n_top_matches):
     """
-    Gives a list of scores for each FAQ, return the top `n_top_matches` FAQs
+    Gives a list of tag_scores for each FAQ, return the top `n_top_matches` FAQs
 
     Parameters
     ----------
     scoring: Dict[int, Dict]
-        Dict with faq_id as key and faq details and scores as values.
+        Dict with faq_id as key and faq details and tag_scores as values.
         See return value of `get_faq_scores_for_message`.
     n_top_matches: int
         the number of top matches to return

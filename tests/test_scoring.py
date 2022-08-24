@@ -1,11 +1,11 @@
+from dataclasses import dataclass
 from pathlib import Path
+from typing import List
 
 import pytest
 import yaml
 from faqt.model import KeyedVectorsScorer
 from faqt.preprocessing import preprocess_text_for_word_embedding
-from dataclasses import dataclass
-from typing import List
 
 pytestmark = pytest.mark.slow
 
@@ -67,10 +67,10 @@ class TestTagsetScorer:
     def test_basic_model_score_with_empty_tags(self, basic_model, input_text):
 
         tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
-        basic_model.set_tags([])
+        basic_model.fit([])
         assert len(basic_model.tagset) == 0
 
-        scores, _ = basic_model.score(tokens)
+        scores, _ = basic_model._score(tokens)
 
         assert sum(any(i.values()) for i in scores) == 0
 
@@ -82,11 +82,11 @@ class TestTagsetScorer:
         self, hunspell_model, tagsets, input_text
     ):
 
-        hunspell_model.set_tags([tagset.tags for tagset in tagsets])
+        hunspell_model.fit([tagset.tags for tagset in tagsets])
         assert len(hunspell_model.tagset) == len(tagsets)
         tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
 
-        scores, _ = hunspell_model.score(tokens)
+        scores, _ = hunspell_model._score(tokens)
 
         if len(tokens) == 0:
             assert sum(any(i.values()) for i in scores) == 0

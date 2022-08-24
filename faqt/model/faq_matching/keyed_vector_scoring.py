@@ -1,6 +1,7 @@
-from ..scoring_functions import cs_nearest_k_percent_average
-from .embeddings import model_search_word, model_search
 from warnings import warn
+
+import numpy as np
+from faqt.scoring.single_tag_scoring import cs_nearest_k_percent_average
 
 
 class KeyedVectorsScorer:
@@ -9,7 +10,7 @@ class KeyedVectorsScorer:
 
     Parameters
     ----------
-    w2v_model: gensim.models.KeyedVectors
+    word_embedding_model: gensim.models.KeyedVectors
         Only google news word2vec binaries have been tested. Vectors must be
         pre-normalized. See Notes below.
 
@@ -44,15 +45,16 @@ class KeyedVectorsScorer:
 
     Notes
     -----
-    * w2v binary must contain prenormalized vectors. This is to reduce operations
-      needed when calculating distance. See script in `faqt.scripts` to prenormalize
-      your vectors.
-    * A tagset is a collection of words (tags) designated to match incoming messages
+    * word embedding binary must contain prenormalized vectors. This is to
+      reduce operations needed when calculating distance. See script in
+      `faqt.scripts` to prenormalize your vectors.
+    * A tagset is a collection of words (tags) designated to match incoming
+      messages
     """
 
     def __init__(
         self,
-        w2v_model,
+        word_embedding_model,
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
@@ -60,7 +62,8 @@ class KeyedVectorsScorer:
         scoring_function=cs_nearest_k_percent_average,
         scoring_func_kwargs={},
     ):
-        self.w2v_model = w2v_model
+        """Initialize"""
+        self.word_embedding_model = word_embedding_model
 
         if glossary is None:
             glossary = {}
@@ -77,7 +80,7 @@ class KeyedVectorsScorer:
 
         if self.tags_guiding_typos is not None:
             self.tags_guiding_typos_wv = model_search(
-                tags_guiding_typos, w2v_model, glossary
+                tags_guiding_typos, word_embedding_model, glossary
             )
         else:
             self.tags_guiding_typos_wv = None
@@ -87,7 +90,7 @@ class KeyedVectorsScorer:
         Wrapper around embeddings.model_search_word. Sets the model and
         glossary and object attributes
         """
-        return model_search_word(word, self.w2v_model, self.glossary)
+        return model_search_word(word, self.word_embedding_model, self.glossary)
 
     def model_search(self, message):
         """
@@ -97,14 +100,14 @@ class KeyedVectorsScorer:
 
         return model_search(
             message,
-            model=self.w2v_model,
+            model=self.word_embedding_model,
             glossary=self.glossary,
             hunspell=self.hunspell,
             tags_guiding_typos_wv=self.tags_guiding_typos_wv,
             return_spellcorrected_text=True,
         )
 
-    def set_tags(self, tagset):
+    def fit(self, tagset):
         """
         Set the tagset that messages should be matched against
 
@@ -141,6 +144,12 @@ class KeyedVectorsScorer:
         return self
 
     def score(self, message):
+        """
+        TODO: NEW METHOD that returns a score for each tagset! Uses _score
+        """
+        pass
+
+    def _score(self, message):
         """
         Scores a given message against tagsets.
 
@@ -185,3 +194,138 @@ class KeyedVectorsScorer:
             scoring.append(all_tag_scores)
 
         return scoring, inbound_spellcorrected
+
+
+def model_search_word(
+    word,
+    model,
+    glossary,
+    hunspell=None,
+    tags_guiding_typos_wv=None,
+    return_spellcorrected_text=False,
+):
+    """
+    Returns vector embedding (or None) for word, trying in order:
+    1.  Special contextualization glossary (custom WVs)
+    2.  Given case
+    3.  Lowercase
+    4.  Title case
+    5.  Various alternative spellings of word, using Hunspell
+            The best alternative spelling is that with highest cosine similarity
+            to any of the words in tags_guiding_typos. Alternative spellings are
+            only considered if tags_guiding_typos is not None.
+
+    Parameters
+    ----------
+    word : str
+    model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
+    glossary : dict
+        Custom contextualization glossary. Words to replace are keys; their values
+        must be dictionaries with (replacement words : weight) as key-value pairs
+    hunspell : Hunspell object
+        Very expensive to load, so should use shared object
+    tags_guiding_typos_wv : list
+        Set of tag wvs to guide the correction of misspelled words.For misspelled words,
+        the best alternative spelling is that with highest cosine similarity
+        to any of the wvs in tags_guiding_typos_wvs.
+
+        E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" --> "child"
+        rather than "chills", even though both are same edit distance.
+
+        Optional parameter. If None (or None equivalent), step 5 above is skipped.
+    return_spellcorrected_text : boolean
+        If True, returns tuple (vector embedding, corrected spelling/case of word used)
+    """
+    if word.lower() in glossary:
+        sum_vector = np.zeros(model["test"].shape)
+        components = glossary[word.lower()]
+
+        for c in components:
+            sum_vector += model[c] * components[c]
+
+        return_vector = sum_vector / np.sqrt(np.dot(sum_vector, sum_vector))
+        return_word = word.lower()
+    elif word in model:
+        return_vector = model[word]
+        return_word = word
+    elif word.lower() in model:
+        return_vector = model[word.lower()]
+        return_word = word.lower()
+    elif word.title() in model:
+        return_vector = model[word.title()]
+        return_word = word.title()
+    elif (not hunspell) or (not tags_guiding_typos_wv):
+        return_vector = None
+    else:
+        suggestions = hunspell.suggest(word)
+
+        best_cs = 0
+        best_alt = None
+        best_alt_wv = None
+
+        for alt in suggestions:
+            # Note that when we call model_search_word here, we don't allow for further
+            # spelling correction (by not passing in tags_guiding_typos). This prevents
+            # theoretically infinite recursion: imagine that there are two words,
+            # "thisword" and "thatword," that are both valid English (and in Hunspell)
+            # but not in the model. Hunspell would continually offer the other word
+            # as a suggestion.
+
+            # Calculate WV for alt / suggestion
+            alt_wv = model_search_word(alt, model, glossary)
+
+            # Need to check alt spelling in the model/glossary either
+            if alt_wv is not None:
+                # Take max CS between alt and (any of the tags_guiding_typos)
+                alt_cs = max(np.dot(alt_wv, tag_wv) for tag_wv in tags_guiding_typos_wv)
+
+                if alt_cs > best_cs:
+                    best_cs = alt_cs
+                    best_alt = alt
+                    best_alt_wv = alt_wv
+
+        return_vector = best_alt_wv
+        return_word = best_alt
+
+    if return_vector is None:
+        return None
+    elif return_spellcorrected_text:
+        return return_vector, return_word
+    else:
+        return return_vector
+
+
+def model_search(
+    tokens,
+    model,
+    glossary,
+    hunspell=None,
+    tags_guiding_typos_wv=None,
+    return_spellcorrected_text=False,
+):
+    """
+    Returns list of vector embeddings corresponding to given tokens
+
+    return_spellcorrected_text : boolean
+        If True, returns tuple (list[vector embeddings], list[spell-corrected tokens])
+    """
+
+    result = [
+        model_search_word(
+            word,
+            model,
+            glossary,
+            hunspell,
+            tags_guiding_typos_wv,
+            return_spellcorrected_text,
+        )
+        for word in tokens
+    ]
+
+    if return_spellcorrected_text:
+        tokens_vectors = [r[0] for r in result if r is not None]
+        tokens_words = [r[1] for r in result if r is not None]
+
+        return tokens_vectors, tokens_words
+    else:
+        return [r for r in result if r is not None]

@@ -5,7 +5,7 @@
 
 import numpy as np
 import pytest
-from faqt.model.embeddings import model_search, model_search_word
+from faqt.model.faq_matching.keyed_vector_scoring import model_search, model_search_word
 
 pytestmark = pytest.mark.slow
 
@@ -16,12 +16,12 @@ def test_model_search_word(w2v_model, hunspell):
     title case, then lowercase) finds vector as expected
 
     Note that lowercase and title case vectors in model are different for nearly
-    all words - e.g., w2v_model["movie"] != w2v_model["Movie"] - and they often
+    all words - e.g., word_embedding_model["movie"] != word_embedding_model["Movie"] - and they often
     even don't have high cosine similarity!
 
     Use np.allclose here to check equality since dealing with floats
     """
-    # Should correct spelling to movie; movee not in w2v_model
+    # Should correct spelling to movie; movee not in word_embedding_model
     assert np.allclose(
         model_search_word(
             "movee",
@@ -33,7 +33,7 @@ def test_model_search_word(w2v_model, hunspell):
         w2v_model["movie"],
     )
 
-    # Should correct spelling to movie; movee not in w2v_model
+    # Should correct spelling to movie; movee not in word_embedding_model
     assert np.allclose(
         model_search_word(
             "movee",
@@ -145,7 +145,7 @@ def test_model_search_word_glossary_single_component(w2v_model, hunspell):
     then given case, title case, and lowercase) finds vector as expected
 
     Note that lowercase and title case vectors in model are different for nearly
-    all words - e.g., w2v_model["movie"] != w2v_model["Movie"] - and they often
+    all words - e.g., word_embedding_model["movie"] != word_embedding_model["Movie"] - and they often
     even don't have high cosine similarity!
 
     Use np.allclose here to check equality since dealing with floats

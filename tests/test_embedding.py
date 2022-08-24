@@ -2,10 +2,7 @@ import math
 
 import numpy as np
 import pytest
-from faqt.model.embeddings import (
-    model_search,
-    model_search_word,
-)
+from faqt.model.faq_matching.keyed_vector_scoring import model_search, model_search_word
 
 LOW_CS = 0.2
 HIGH_CS = 0.8
@@ -14,7 +11,7 @@ HIGH_CS = 0.8
 @pytest.mark.slow
 def test_pretrained_existence(w2v_model):
     """
-    Check words are in/not in w2v_model, dimension correct
+    Check words are in/not in word_embedding_model, dimension correct
     """
     assert "horse" in w2v_model
     assert "notarealword" not in w2v_model
@@ -23,7 +20,7 @@ def test_pretrained_existence(w2v_model):
 @pytest.mark.slow
 def test_pretrained_similarities(w2v_model):
     """
-    Check similarities in w2v_model
+    Check similarities in word_embedding_model
     """
 
     def cos_sim(x, y):
@@ -43,8 +40,8 @@ def test_model_search_word(w2v_model):
     Check that our model_search_word function (which searches for given case,
     lowercase, title case) finds vector as expected
 
-    Note that lowercase and title case vectors in w2v_model are different for nearly
-    all words - e.g., w2v_model["movie"] != w2v_model["Movie"] - and they often
+    Note that lowercase and title case vectors in word_embedding_model are different for nearly
+    all words - e.g., word_embedding_model["movie"] != word_embedding_model["Movie"] - and they often
     even don't have high cosine similarity!
 
     Use np.allclose here to check equality since dealing with floats
@@ -62,23 +59,23 @@ def test_model_search_word_case(w2v_model):
     Check that our model_search_word function (which searches for given case,
     lowercase, title case) finds vector as expected
 
-    Note that lowercase and title case vectors in w2v_model are different for nearly
-    all words - e.g., w2v_model["movie"] != w2v_model["Movie"] - and they often
+    Note that lowercase and title case vectors in word_embedding_model are different for nearly
+    all words - e.g., word_embedding_model["movie"] != word_embedding_model["Movie"] - and they often
     even don't have high cosine similarity!
 
     Use np.allclose here to check equality since dealing with floats
     """
-    # movie (lowercase) is in w2v_model search word, so should be different
+    # movie (lowercase) is in word_embedding_model search word, so should be different
     assert not np.allclose(
         model_search_word("movie", w2v_model, {}), w2v_model["Movie"]
     )
-    # muhammadu (lowercase) is not in w2v_model, title case is, so should return
+    # muhammadu (lowercase) is not in word_embedding_model, title case is, so should return
     # title case
     assert np.allclose(
         model_search_word("muHAMMADu", w2v_model, {}), w2v_model["Muhammadu"]
     )
 
-    # only lowercase is in the w2v_model
+    # only lowercase is in the word_embedding_model
     assert np.allclose(
         model_search_word("CoNoCiMiEnTo", w2v_model, {}),
         w2v_model["conocimiento"],
@@ -194,8 +191,8 @@ def test_model_search_sentence_case_correction(w2v_model):
     then given case, title case, and lowercase) finds vectors as expected,
     for multiple words in sentence
 
-    Note that lowercase and title case vectors in w2v_model are different for nearly
-    all words - e.g., w2v_model["movie"] != w2v_model["Movie"] - and they often even
+    Note that lowercase and title case vectors in word_embedding_model are different for nearly
+    all words - e.g., word_embedding_model["movie"] != word_embedding_model["Movie"] - and they often even
     don't have high cosine similarity!
 
     Use np.allclose here to check equality since dealing with floats
