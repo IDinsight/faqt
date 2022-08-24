@@ -2,11 +2,16 @@ import math
 
 import numpy as np
 import pytest
+<<<<<<< HEAD:tests/test_scoring/test_tag_scoring_functions.py
 from faqt.model.faq_matching.keyed_vectors_scoring import (
     model_search,
     model_search_word,
 )
 from faqt.scoring.tag_scoring import cs_nearest_k_percent_average
+=======
+from faqt.model.faq_matching.keyed_vector_scoring import model_search, model_search_word
+from faqt.scoring.single_tag_scoring import cs_nearest_k_percent_average
+>>>>>>> 2cba963 (restructure modules):tests/test_scoring_functions.py
 
 # Need to tune these dimensions if not using Google News pretrained model
 LOW_CS = 0.2
