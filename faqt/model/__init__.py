@@ -6,3 +6,4 @@ from faqt.model.urgency_detection.keyword_rule_matching_model import (
     KeywordRule,
     evaluate_keyword_rules,
 )
+

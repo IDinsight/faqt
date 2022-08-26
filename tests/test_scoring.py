@@ -4,7 +4,7 @@ from typing import List
 
 import pytest
 import yaml
-from faqt.model import KeyedVectorsScorer
+from faqt.model import StepwiseKeyedVectorScorer
 from faqt.preprocessing import preprocess_text_for_word_embedding
 
 pytestmark = pytest.mark.slow
@@ -42,12 +42,12 @@ class TestTagsetScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = KeyedVectorsScorer(w2v_model)
+        faqt = PairwiseKeyedVectorsScorer(w2v_model)
         return faqt
 
     @pytest.fixture
     def hunspell_model(self, w2v_model, hunspell):
-        faqt = KeyedVectorsScorer(
+        faqt = PairwiseKeyedVectorsScorer(
             w2v_model,
             hunspell=hunspell,
             tags_guiding_typos=["music", "food"],
@@ -67,10 +67,12 @@ class TestTagsetScorer:
     def test_basic_model_score_with_empty_tags(self, basic_model, input_text):
 
         tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
-        basic_model.fit([])
-        assert len(basic_model.tagset) == 0
+        basic_model.set_contents([])
+        assert len(basic_model.tagsets) == 0
 
-        scores, _ = basic_model._score(tokens)
+        scores, _ = basic_model.score_contents(
+            tokens, return_tag_scores=True, return_corrected=True
+        )
 
         assert sum(any(i.values()) for i in scores) == 0
 
@@ -82,11 +84,13 @@ class TestTagsetScorer:
         self, hunspell_model, tagsets, input_text
     ):
 
-        hunspell_model.fit([tagset.tags for tagset in tagsets])
-        assert len(hunspell_model.tagset) == len(tagsets)
+        hunspell_model.set_contents([tagset.tags for tagset in tagsets])
+        assert len(hunspell_model.tagsets) == len(tagsets)
         tokens = preprocess_text_for_word_embedding(input_text, {}, 0)
 
-        scores, _ = hunspell_model._score(tokens)
+        scores, _ = hunspell_model.score_contents(
+            tokens, return_tag_scores=True, return_corrected=True
+        )
 
         if len(tokens) == 0:
             assert sum(any(i.values()) for i in scores) == 0
