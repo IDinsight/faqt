@@ -1,4 +1,4 @@
-class QuestionAnswerBERTScorer(object):
+class QuestionAnswerBERTScorer:
     """FAQ matching model based on (question, answer) relevance scoring using BERT"""
 
     def __init__(
@@ -18,9 +18,9 @@ class QuestionAnswerBERTScorer(object):
         self.bert_model_name = bert_model_name
         self.negative_sampling_rate = negative_sampling_rate
 
-    def fit(self, messages, contents, **kwargs):
+    def set_contents(self, messages, contents, **kwargs):
         """
-        Fit model with FAQ content (answers) and associated example questions by
+        "Fit" model with FAQ content (answers) and associated example questions by
         1. generating negative samples
         2. creating BERT inputs of question, answer pairs
         3. tokenizing
@@ -39,9 +39,9 @@ class QuestionAnswerBERTScorer(object):
         """
         raise NotImplementedError
 
-    def score(self, message, **kwargs):
+    def score_contents(self, message, **kwargs):
         """
-        Score
+        Score message against each of the contents
 
         Parameters
         ----------

@@ -30,7 +30,7 @@ def process_urls(content, n_min_dashed_words_url):
     Parameters
     ----------
     content : str
-        Text WhatsApp message
+        Text WhatsApp tokens
     n_min_dashed_words_url : int
         The number of words that must be separated by dashes in a URL, to treat the
         text as an actual relevant content summary. We only allow 2 or more
@@ -39,7 +39,7 @@ def process_urls(content, n_min_dashed_words_url):
     Returns
     -------
     str
-        Text WhatsApp message, with URLs replaced with any relevant content summaries
+        Text WhatsApp tokens, with URLs replaced with any relevant content summaries
 
     Example
     -------

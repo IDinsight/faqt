@@ -1,10 +1,20 @@
-"""Module for various scoring functions"""
-
+"""Module for various scoring functions for (tokens, single tag)"""
 import numpy as np
 
-__all__ = ["cs_nearest_k_percent_average"]
+__all__ = ["TAG_SCORING_METHODS"]
+
+TAG_SCORING_METHODS = {}
 
 
+def tag_scoring_method(scoring_func):
+    """
+    Decorator to register scoring functions
+    """
+    TAG_SCORING_METHODS[scoring_func.__name__] = scoring_func
+    return scoring_func
+
+
+@tag_scoring_method
 def cs_nearest_k_percent_average(list_of_wvs, target_wv, k=100, floor=1):
     """
     Returns the cosine similarity between target_wv and

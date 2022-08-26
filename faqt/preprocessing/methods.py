@@ -1,18 +1,13 @@
 """
 Text pre-processing for word embeddings
 """
-__all__ = ["preprocess_text_for_word_embedding",
-           "preprocess_text_for_keyword_rule"]
+__all__ = ["preprocess_text_for_word_embedding", "preprocess_text_for_keyword_rule"]
 
 from itertools import chain
-from nltk.tokenize import word_tokenize
 
 from faqt.preprocessing.text import process_urls, remove_punctuation
-from faqt.preprocessing.tokens import (
-    get_ngrams,
-    connect_phrases,
-    remove_stop_words
-)
+from faqt.preprocessing.tokens import connect_phrases, get_ngrams, remove_stop_words
+from nltk.tokenize import word_tokenize
 
 
 def preprocess_text_for_word_embedding(
@@ -35,7 +30,7 @@ def preprocess_text_for_word_embedding(
     Parameters
     ----------
     content : str
-        Original raw WhatsApp message
+        Original raw WhatsApp tokens
     entities_dict : Dict[Tuple[str], str]
         Example: entities_dict[('African', 'Union')] = "African_Union"
     n_min_dashed_words_url : Int
@@ -54,19 +49,20 @@ def preprocess_text_for_word_embedding(
     content = remove_punctuation(content)
     tokens = word_tokenize(content)
 
-    tokens = remove_stop_words(
-        tokens,
-        reincluded_stop_words=reincluded_stop_words
-    )
+    tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
     tokens = connect_phrases(tokens, entities_dict)
 
     return tokens
 
 
 def preprocess_text_for_keyword_rule(
-    content, n_min_dashed_words_url, stem_func, spell_checker,
+    content,
+    n_min_dashed_words_url,
+    stem_func,
+    spell_checker,
     reincluded_stop_words=None,
-    ngram_min=1, ngram_max=2
+    ngram_min=1,
+    ngram_max=2,
 ):
     """
     Preprocess raw text strings for keyword search:
@@ -81,7 +77,7 @@ def preprocess_text_for_keyword_rule(
     Parameters
     ----------
     content : str
-        Original raw WhatsApp message
+        Original raw WhatsApp tokens
     n_min_dashed_words_url : Int
         The number of words that must be separated by dashes in a URL, to treat the
         text as an actual relevant content summary
@@ -115,6 +111,7 @@ def preprocess_text_for_keyword_rule(
     tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
 
     def spell_check_or_suggest(x):
+        """checks spell and if wrong, suggest options"""
         if spell_checker.spell(x):
             return x
         else:
@@ -136,5 +133,5 @@ def preprocess_text_for_keyword_rule(
 
     ngram_tokens = get_ngrams(tokens, ngram_min, ngram_max)
 
-    combined_ngram_tokens = list(map(lambda x: '_'.join(x), ngram_tokens))
+    combined_ngram_tokens = list(map(lambda x: "_".join(x), ngram_tokens))
     return combined_ngram_tokens
