@@ -5,14 +5,7 @@ import os
 from collections import UserDict
 from pathlib import Path
 
-import pandas as pd
 import yaml
-
-
-class AttributeDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttributeDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
 
 
 def load_yaml_data(folder, filename):
@@ -114,37 +107,6 @@ def load_tags_guiding_typos():
         tags_guiding_typos = yaml.full_load(file)
 
     return tags_guiding_typos
-
-
-def load_generic_dataset(data_source_name):
-    """
-    Load any dataset using the data_sources.yml name
-    """
-    data_sources = load_data_sources()
-    my_data_source_info = data_sources[data_source_name]
-
-    file_name = my_data_source_info["filename"]
-    folder = my_data_source_info["folder"]
-    args = my_data_source_info.get("args")
-    file_type = file_name.split(".")[1]
-
-    if args is None:
-        args = {}
-
-    path = Path(__file__).parents[2] / "data/{}/{}".format(folder, file_name)
-
-    if file_type == "csv":
-        dataset = pd.read_csv(path, **args)
-    elif file_type == "dta":
-        dataset = pd.read_stata(path, **args)
-    elif file_type in ["xlsx", "xls"]:
-        dataset = pd.read_excel(path, **args)
-    else:
-        raise NotImplementedError(
-            "Cannot load file {} with extention {}".format(file_name, file_type)
-        )
-
-    return dataset
 
 
 def get_postgres_uri(
