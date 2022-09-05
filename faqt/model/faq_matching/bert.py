@@ -1,35 +1,41 @@
-from itertools import chain
-
-import numpy as np
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 
 class QuestionAnswerBERTScorer:
     """FAQ matching model based on (question, answer) relevance scoring using BERT"""
 
-    def __init__(
-        self,
-        bert_model_name="distilbert-base-uncased",
-        negative_sampling_rate=1.2,
-        random_state=None,
-    ):
+    def __init__(self, model_path, batch_size=1):
         """
+        Initialize.
 
         Parameters
         ----------
-        bert_model_name : str
-            BERT model ID in huggingface. See
-            [transformers.AutoModelForSequenceClassification](https://huggingface.co/docs/transformers/v4.21.1/en/model_doc/auto#transformers.AutoModelForSequenceClassification).
-        negative_sampling_rate : float
-            Desired ratio <negative samples> / <positive samples>. Default is
-            1.2.
-        random_state : int, optional
+        model_path : str
+            path to Huggingface transformers model directory
+        batch_size : int, default=1
+            batch size for predictions
         """
-        self.bert_model_name = bert_model_name
-        self.negative_sampling_rate = negative_sampling_rate
-        self.random_state = random_state  # TODO: save/set random state
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        classifier = AutoModelForSequenceClassification.from_pretrained(model_path)
 
-    def set_contents(self, messages, contents, **kwargs):
+        self.model = pipeline(
+            task="text-classification",
+            model=classifier,
+            tokenizer=tokenizer,
+            batch_size=batch_size,
+        )
+        self.batch_size = batch_size
+
+        self.messages = None
+        self.contents = None
+        self.num_contents = None
+
+    @property
+    def contents_set(self):
+        """checks if contents are set"""
+        return not (self.messages is None or self.contents is None)
+
+    def set_contents(self, messages, contents):
         """
         "Fit" model with FAQ content (answers) and associated example questions by
         1. generating negative samples
@@ -48,32 +54,13 @@ class QuestionAnswerBERTScorer:
         contents : List-like[str]
             FAQ contents.
         """
-        messages = list(messages)
-        contents = list(contents)
+        self.messages = list(messages)
+        self.contents = list(contents)
+        self.num_contents = len(contents)
 
-        # Generate negative samples
-        negative_samples = {
-            "messages": [],
-            "contents": [],
-        }
-        n_negative = 0
+        return self
 
-        for i, (correct_messages, content) in enumerate(zip(messages, contents)):
-            wrong_msgs = list(chain(messages[: i - 1] + messages[i + 1 :]))
-            n = np.around(len(correct_messages) * self.negative_sampling_rate)
-            sampled_wrong_msgs = np.random.choice(wrong_msgs, size=n, replace=False)
-
-            negative_samples["messages"].extend(sampled_wrong_msgs)
-            negative_samples["contents"].extend([content] * n)
-            n_negative += n
-
-        messages_aug = messages + negative_samples["messages"]
-        contents_aug = contents + negative_samples["contents"]
-
-        n_positive = len(contents)
-        labels = np.ones(n_positive) + np.zeros(n_negative)
-
-    def score_contents(self, message, **kwargs):
+    def score_contents(self, message):
         """
         Score message against each of the contents
 
@@ -87,4 +74,21 @@ class QuestionAnswerBERTScorer:
         tag_scores
 
         """
-        pass
+        if not self.contents_set:
+            raise ValueError(
+                "Contents unavailable. Set contents first using "
+                "`.set_contents(...)`."
+            )
+        inputs = [{"text": message, "text_pair": content} for content in self.contents]
+        outputs_generator = self.model(inputs)
+
+        relevance_scores = []
+
+        for i, prediction in enumerate(outputs_generator):
+            is_one = int(prediction["label"] == "LABEL_1")
+            score = prediction["score"]
+
+            relevance_score = (1 - is_one) * (1 - score) + is_one * score
+            relevance_scores.append(relevance_score)
+
+        return relevance_scores
