@@ -25,10 +25,6 @@ def bert_model_path():
     folder = "sequence_classification_models"
     model_folder = "huggingface_model"
 
-    if os.getenv("GITHUB_ACTIONS") == "true":
-        bucket = os.getenv("WORD2VEC_BINARY_BUCKET")
-        full_path = download_huggingface_model_from_s3(bucket, folder, model_folder)
-    else:
-        full_path = Path(__file__).parent / "data" / folder / model_folder
+    full_path = Path(__file__).parent / "data" / folder / model_folder
 
     return full_path

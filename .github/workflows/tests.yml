@@ -31,6 +31,20 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
+        name: Download huggingface model
+        with:
+          command: copy
+          source: ${{ secrets.WORD2VEC_BINARY_BUCKET }}/huggingface_model.tar.gz
+          destination: ./tests/data/sequence_classification_models/
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
+      - name: Unpack huggingface model
+        run: |
+          mkdir ./tests/data/sequence_classification_models
+          tar -xvf ./tests/data/sequence_classification_models/huggingface_model.tar.gz -C ./tests/data/sequence_classification_models
+          rm ./tests/data/sequence_classification_models/huggingface_model.tar.gz
       - name: Run Unit Tests
         env: 
           WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
