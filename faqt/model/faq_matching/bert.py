@@ -28,14 +28,13 @@ class QuestionAnswerBERTScorer:
 
         self.messages = None
         self.contents = None
-        self.num_contents = None
 
     @property
     def is_set(self):
         """checks if contents are set"""
-        return not (self.messages is None or self.contents is None)
+        return self.contents is not None
 
-    def set_contents(self, messages, contents):
+    def set_contents(self, contents):
         """
         "Fit" model with FAQ content (answers) and associated example questions by
         1. generating negative samples
@@ -54,9 +53,7 @@ class QuestionAnswerBERTScorer:
         contents : List-like[str]
             FAQ contents.
         """
-        self.messages = list(messages)
         self.contents = list(contents)
-        self.num_contents = len(contents)
 
         return self
 
@@ -79,6 +76,7 @@ class QuestionAnswerBERTScorer:
                 "Contents unavailable. Set contents first using "
                 "`self.set_contents()`."
             )
+
         inputs = [{"text": message, "text_pair": content} for content in self.contents]
         outputs_generator = self.model(inputs)
 
