@@ -60,3 +60,22 @@ class TestQuestionAnswerBERTScorer:
         scores = bert_scorer.score_contents(question)
 
         assert np.argmax(scores) == correct_content_idx
+
+    def test_score_contetns_on_empty_msg_still_returns_scores(
+        self, bert_scorer, contents
+    ):
+        bert_scorer.set_contents(contents=contents)
+        scores = bert_scorer.score_contents("")
+
+        assert len(scores) == len(contents)
+
+    def test_score_contetns_on_long_msg_still_returns_scores(
+        self, bert_scorer, contents
+    ):
+        """Checks that inputs with length > model max length gets truncated"""
+        bert_scorer.set_contents(contents=contents)
+        num_tokens = bert_scorer.model.tokenizer.model_max_length + 1
+        really_long_message = "word " * num_tokens
+        scores = bert_scorer.score_contents(really_long_message)
+
+        assert len(scores) == len(contents)
