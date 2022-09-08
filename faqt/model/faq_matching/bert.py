@@ -1,3 +1,5 @@
+import types
+
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 
@@ -21,16 +23,41 @@ class QuestionAnswerBERTScorer:
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         classifier = AutoModelForSequenceClassification.from_pretrained(model_path)
 
-        self.model = pipeline(
+        self.model = self._create_safe_pipeline(tokenizer, classifier, batch_size)
+
+        self.batch_size = batch_size
+
+        self.contents = None
+
+    @staticmethod
+    def _create_safe_pipeline(tokenizer, classifier, batch_size):
+        """Workaround to ensure truncation during tokenization.
+        See https://stackoverflow.com/a/71243383/7664921, but we adapt the
+        preprocess function for text_classification task"""
+        pipe = pipeline(
             task="text-classification",
             model=classifier,
             tokenizer=tokenizer,
             batch_size=batch_size,
         )
-        self.batch_size = batch_size
 
-        self.messages = None
-        self.contents = None
+        MAX_LENGTH = classifier.config.max_position_embeddings
+
+        def _preprocess_with_truncation(self, inputs, **tokenizer_kwargs):
+            """Preprocess function to override default. Adds truncation
+            parameters"""
+            return_tensors = self.framework
+            tokenizer_kwargs.update(
+                {"truncation": "longest_first", "max_length": MAX_LENGTH}
+            )
+
+            return self.tokenizer(
+                **inputs, return_tensors=return_tensors, **tokenizer_kwargs
+            )
+
+        pipe.preprocess = types.MethodType(_preprocess_with_truncation, pipe)
+
+        return pipe
 
     @property
     def is_set(self):

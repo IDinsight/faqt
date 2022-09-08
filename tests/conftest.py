@@ -23,9 +23,7 @@ def hunspell():
 @pytest.fixture(scope="session")
 def bert_model_path():
     folder = "sequence_classification_models"
-    model_folder = (
-        "huggingface-pytorch-training-2022-07-30-15-57-13" "-503__output__model"
-    )
+    model_folder = "huggingface_model"
 
     if os.getenv("GITHUB_ACTIONS") == "true":
         bucket = os.getenv("WORD2VEC_BINARY_BUCKET")
