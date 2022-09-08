@@ -1,9 +1,13 @@
+from abc import ABC, abstractmethod
 from warnings import warn
 
 import numpy as np
+from faqt.scoring.score_reduction import SCORE_REDUCTION_METHODS
+from faqt.scoring.score_weighting import SCORE_WEIGHTING_METHODS
+from faqt.scoring.tag_scoring import TAG_SCORING_METHODS
 
 
-class KeyedVectorsScorerBase:
+class KeyedVectorsScorerBase(ABC):
     """Base class for Keyed vector scoring-type models"""
 
     def __init__(
@@ -12,6 +16,8 @@ class KeyedVectorsScorerBase:
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
+        weighting_method=None,
+        weighting_kwargs=None,
     ):
         """
         Allows setting reference tagsets and scoring new messages against it
@@ -42,6 +48,19 @@ class KeyedVectorsScorerBase:
 
             Optional parameter. If None (or None equivalent), we assume not no
             guiding tags'
+
+        weighting_method : string or Callable, optional
+            If a string is passed, must be in
+            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
+            e.g. `add_weights`.
+
+            If a Callable is passed, it must be a function that takes in two
+            lists of floats (scores and weights) with optional
+            keyword-arguments and outputs a 1-D array of weighted scores.
+
+        weighting_kwargs : dict, optional
+            Keyword arguments to pass to `weighting_method`
+
         Notes
         -----
         * word embedding binary must contain prenormalized vectors. This is to
@@ -70,6 +89,12 @@ class KeyedVectorsScorerBase:
         else:
             self.tags_guiding_typos_wv = None
 
+        if isinstance(weighting_method, str):
+            weighting_method = SCORE_WEIGHTING_METHODS[weighting_method]
+
+        self.weighting_method = weighting_method
+        self.weighting_kwargs = weighting_kwargs
+
     def set_contents(self, tagsets, weights=None):
         """
         Set the contents that messages should be matched against.
@@ -84,7 +109,7 @@ class KeyedVectorsScorerBase:
             List of list-likes of tags
             Tags are used to match incoming messages
         weights: List[float] or None
-            Weight of each FAQ
+            Weight of each FAQ, will be scaled so that sum(weights) == 1.0.
 
         Returns
         -------
@@ -108,11 +133,91 @@ class KeyedVectorsScorerBase:
         self.tagsets = tagsets
         self.tagset_wvs = tagset_wvs
 
-        if not np.isclose(np.sum(weights), 1.0):
-            weights = weights / np.sum(weights)
+        if weights is None and self.weighting_method is not None:
+            warn(
+                f"Weighting method is set to {self.weighting_method} but "
+                f"parameter `weights` was not provided. No weighting will be "
+                f"performed!"
+            )
+        elif weights is not None:
+            if self.weighting_method is None:
+                warn(
+                    "Weights were provided but `self.weighting_method` is "
+                    "None. No weighting will be performed!"
+                )
+
+            if not np.isclose(np.sum(weights), 1.0):
+                weights = weights / np.sum(weights)
+
         self.tagset_weights = weights
 
         return self
+
+    def score_contents(self, message, return_spell_corrected=False, **kwargs):
+        """
+        Scores contents and applies weighting if `self.weighting_method` is not None
+
+        Parameters
+        ----------
+        message : str
+        return_spell_corrected : bool
+        kwargs :
+            additional keyword arguments to pass.
+            e.g. for StepwiseKeyedVectorScorer, `return_tag_scores=True` will include in the return dictionary, in "tag_scores" a dictionary of tags with scores for each token in the message.
+
+        Returns
+        -------
+        return_dict : dict
+            `return_dict["overall_scores"]` : Score for each tag-set in the
+            order stored in `self.tagsets`.
+            `return_dict["spell_corrected"]` : List of spell-corrected
+            pre-processed tokens from `message`
+            If this is called from a StepwiseKeyedVectorScorer,
+            `return_dict["tag_scores"]`: List of dictionaries of score assigned
+            to each tag in each tagset
+        """
+        if not self.is_set:
+            raise ValueError(
+                "Contents have not been set. Set contents with `self.set_contents()`"
+            )
+
+        message_vectors, spell_corrected = self.model_search(message)
+
+        if len(message_vectors) == 0:
+            result = {"overall_scores": []}
+            if return_spell_corrected:
+                result["spell_corrected"] = []
+            if kwargs.get("return_tag_scores"):
+                result["tag_scores"] = []
+
+            return result
+
+        result = self._score_contents(message_vectors, **kwargs)
+
+        if self.weighting_method is not None and self.tagset_weights is not None:
+            weighted_scores = self.weighting_method(
+                result["overall_scores"], self.tagset_weights, **self.weighting_kwargs
+            )
+            result["overall_scores"] = weighted_scores
+
+        if return_spell_corrected:
+            result["spell_corrected"] = spell_corrected
+
+        return result
+
+    @abstractmethod
+    def _score_contents(self, message_vectors, **kwargs):
+        """Abstract method to do the scoring on message vectors, without
+        weighting. Must be implemented for each child class."""
+        pass
+
+    @property
+    def is_set(self):
+        return (
+            hasattr(self, "tagsets")
+            and hasattr(self, "tagset_wvs")
+            and hasattr(self, "tagset_weights")
+        )
 
     def model_search_word(self, word):
         """
@@ -145,10 +250,11 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
         word_embedding_model,
         scoring_method,
         scoring_kwargs=None,
+        weighting_method=None,
+        weighting_kwargs=None,
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
-        N=1.0,
     ):
         """
         Allows setting reference tagsets and scoring new messages against it
@@ -160,18 +266,24 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
             pre-normalized. See Notes below.
 
         scoring_method: Callable
-            A function that takes a pair of list of word vectors (e.g. word
+            A function that takes two lists of word vectors (e.g. word
             vectors of tokens in incoming tokens and word vectors of tags) and
             returns a match score as a scalar float.
 
-            # TODO: determine if we should provide a default or not
-            # If not provided, defaults to a function that first applies
-            # `faqt.scoring.tag_scoring.cs_nearest_k_percent_average` to each tag (
-            # with the tokens) and then reducing the scores using
-            # `faqt.scoring.reduce.simple_mean`.
-
         scoring_kwargs : dict, optional
             Keyword arguments to pass through `scoring_method`
+
+        weighting_method : string or Callable, optional
+            If a string is passed, must be in
+            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
+            e.g. `add_weights`.
+
+            If a Callable is passed, it must be a function that takes in two
+            lists of floats (scores and weights) with optional
+            keyword-arguments and outputs a 1-D array of weighted scores.
+
+        weighting_kwargs : dict, optional
+            Keyword arguments to pass to `weighting_method`
 
         glossary: Dict[str, Dict[str, float]], optional
             Custom contextualization glossary. Words to replace are keys; their
@@ -194,11 +306,6 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
             Optional parameter. If None (or None equivalent), we assume not no
             guiding tags'
 
-        N : float
-            "strength" of weights -- this is the N in weighted final score:
-            `(overall_score + N * weight) / (1 + N)`
-            Default is 0.0 (no weight added)
-
         Notes
         -----
         * word embedding binary must contain prenormalized vectors. This is to
@@ -208,35 +315,31 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
           messages
         """
         super(KeyedVectorsScorer, self).__init__(
-            word_embedding_model, glossary, hunspell, tags_guiding_typos
+            word_embedding_model,
+            glossary,
+            hunspell,
+            tags_guiding_typos,
+            weighting_method,
+            weighting_kwargs,
         )
 
         self.scoring_method = scoring_method
         self.scoring_kwargs = scoring_kwargs or {}
 
-        self.N = N
-
-    def score_contents(self, message, return_corrected=False):
+    def _score_contents(self, message_vectors, **kwargs):
         """
         Scores each tagset against the given tokens
         Parameters
         ----------
-        message: List[str]
-            pre-processed input tokens as a list of tokens.
-            See `faqt.preprocessing` for preprocessing functions
-        return_corrected : bool
-            If True, returns a list of spell-corrected tokens of `tokens`.
+        message_vectors: List[List[float]]
+            List of word vectors of length > 0
 
         Returns
         -------
-        Tuple(List[float], [List[Dict[str, float]], List[Str], ])
-            Score for each tag-set in the order stored in `self.tagsets`.
-            Optionally also returns a list of dictionaries of score assigned
-            to each tag in each tagset and/or a list of spell corrected tokens
-            of `tokens`.
-
+        return_dict : dict
+            `return_dict["overall_scores"]` : Score for each tag-set in the
+            order stored in `self.tagsets`.
         """
-        message_vectors, spell_corrected = self.model_search(message)
 
         overall_scores = []
 
@@ -247,16 +350,9 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
 
             overall_scores.append(overall_score)
 
-        if self.tagset_weights is not None and self.N > 0.0:
-            overall_scores = [
-                (score + self.N * w) / (self.N + 1)
-                for score, w in zip(overall_scores, self.tagset_weights)
-            ]
+        return_dict = {"overall_scores": overall_scores}
 
-        if return_corrected:
-            return overall_scores, spell_corrected
-        else:
-            return overall_scores
+        return return_dict
 
 
 class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
@@ -265,14 +361,15 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
     def __init__(
         self,
         word_embedding_model,
-        tag_scoring_method,
-        score_reduction_method,
+        tag_scoring_method="cs_nearest_k_percent_average",
         tag_scoring_kwargs=None,
+        score_reduction_method="simple_mean",
         score_reduction_kwargs=None,
+        weighting_method=None,
+        weighting_kwargs=None,
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
-        N=1.0,
     ):
         """
         Allows setting reference contents (as tagsets) and scoring new messages
@@ -287,21 +384,39 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
             Only google news word2vec binaries have been tested. Vectors must be
             pre-normalized. See Notes below.
 
-        tag_scoring_method : Callable
-            A function that takes in a list of vectors (tokens tokens) as its
+        tag_scoring_method : string or Callable, default: "cs_nearest_k_percent_average"
+            If a string is passed, it must be in
+            `faqt.scoring.tag_scoring.TAG_SCORING_METHODS`.
+
+            If a callable is passed it must be a function that takes in a
+            list of vectors (tokens tokens) as its
             first argument and a single vector (tag) as the second argument.
-
-            See `faqt.scoring.tag_scoring` for pre-defined tag scoring methods.
-
-        score_reduction_method : Callable
-            A function that takes in a list of floats (scores) and reduces it to a scalar float value.
-            See `faqt.scoring.reduce` for pre-defined score reduction methods.
 
         tag_scoring_kwargs : dict, optional
             Keyword arguments for `tag_scoring_method`
 
+        score_reduction_method : string or Callable, default: "simple_mean"
+            If a string is passed it must be in
+            `faqt.scoring.score_reduction.SCORE_REDUCTION_METHODS`.
+
+            If a callable is passed it must be a function that takes in a
+            list of floats (scores) and reduces it to a scalar float value.
+
         score_reduction_kwargs : dict, optional
             Keyword arguments for `score_reduction_method`
+
+        weighting_method : string or Callable, optional
+            If a string is passed, must be in
+            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
+            e.g. `add_weights`.
+
+            If a Callable is passed, it must be a function that takes in two
+            lists of floats (scores and weights) with optional
+            keyword-arguments and outputs a 1-D array of weighted scores.
+
+        weighting_kwargs : dict, optional
+            Keyword arguments to pass to `weighting_method`
+
 
         glossary: Dict[str, Dict[str, float]], optional
             Custom contextualization glossary. Words to replace are keys; their
@@ -325,11 +440,6 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
             Optional parameter. If None (or None equivalent), we assume not no
             guiding tags'
 
-        N : float
-            "strength" of weights -- this is the N in weighted final score:
-            `(overall_score + N * weight) / (1 + N)`
-            Default is 0.0 (no weight added)
-
         Notes
         -----
         * word embedding binary must contain prenormalized vectors. This is to
@@ -339,41 +449,45 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
           messages
         """
         super(StepwiseKeyedVectorScorer, self).__init__(
-            word_embedding_model, glossary, hunspell, tags_guiding_typos
+            word_embedding_model,
+            glossary,
+            hunspell,
+            tags_guiding_typos,
+            weighting_method,
+            weighting_kwargs,
         )
 
+        if isinstance(tag_scoring_method, str):
+            tag_scoring_method = TAG_SCORING_METHODS[tag_scoring_method]
         self.tag_scoring_method = tag_scoring_method
         self.tag_scoring_kwargs = tag_scoring_kwargs or {}
 
+        if isinstance(score_reduction_method, str):
+            score_reduction_method = SCORE_REDUCTION_METHODS[score_reduction_method]
         self.score_reduction_method = score_reduction_method
         self.score_reduction_kwargs = score_reduction_kwargs or {}
 
-        self.N = N
-
-    def score_contents(self, message, return_tag_scores=False, return_corrected=False):
+    def _score_contents(self, message_vectors, return_tag_scores=False):
         """
 
         Parameters
         ----------
-        message: List[str]
+        message_vectors: List[List[float]]
             pre-processed input tokens as a list of tokens.
             See `faqt.preprocessing` for preprocessing functions
         return_tag_scores : bool
             If True, returns a list of dictionaries, where each dictionary
             contains the scores for each tag.
-        return_corrected : bool
-            If True, returns a list of spell-corrected tokens of `tokens`.
 
         Returns
         -------
-        Tuple(List[float], [List[Dict[str, float]], List[Str], ])
-            Score for each tag-set in the order stored in `self.tagsets`.
-            Optionally also returns a list of dictionaries of score assigned
-            to each tag in each tagset and/or a list of spell corrected tokens
-            of `tokens`.
+        return_dict : dict
+            `return_dict["overall_scores"]` : Score for each tag-set in the
+            order stored in `self.tagsets`.
+            `return_dict["tag_scores"]`: list of dictionaries of score assigned
+            to each tag in each tagset
 
         """
-        message_vectors, spell_corrected = self.model_search(message)
 
         overall_scores = []
         tag_scores = []
@@ -388,28 +502,18 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
             tag_scores.append(tag_scores_per_tagset)
 
             overall_score = self.score_reduction_method(
-                message_vectors,
-                tag_scores_per_tagset.values(),
+                list(tag_scores_per_tagset.values()),
                 **self.score_reduction_kwargs,
             )
 
             overall_scores.append(overall_score)
 
-        # TODO: to allow multiple weighting functions or not?
-        if self.tagset_weights is not None and self.N > 0.0:
-            overall_scores = [
-                (score + self.N * w) / (self.N + 1)
-                for score, w in zip(overall_scores, self.tagset_weights)
-            ]
+        return_dict = {"overall_scores": overall_scores}
 
         if return_tag_scores:
-            if return_corrected:
-                return overall_scores, tag_scores, spell_corrected
-            else:
-                return overall_scores, tag_scores
-        elif return_corrected:
-            return overall_scores, spell_corrected
-        return overall_scores
+            return_dict["tag_scores"] = tag_scores
+
+        return return_dict
 
 
 def model_search_word(
