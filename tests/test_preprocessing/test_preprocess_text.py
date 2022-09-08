@@ -69,7 +69,7 @@ class TestUrlParsing:
         assert process_urls(msg, 2) == expected
 
     @pytest.mark.parametrize(
-        "tokens, expected",
+        "message, expected",
         [
             (
                 "i found this cool article https://www.nytimes.com/video/multimedia/"

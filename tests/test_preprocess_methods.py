@@ -367,7 +367,7 @@ class TestPreprocessingForKeywordRule:
         )
 
     @pytest.mark.parametrize(
-        "tokens, expected",
+        "message, expected",
         [
             (
                 "https://www.nytimes.com/video/multimedia/100000003081122/hot"
