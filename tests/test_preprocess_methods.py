@@ -77,7 +77,9 @@ class TestPreprocessingForWordEmbedding:
             (["the", "out"], ["let", "the", "dogs", "out"]),
         ],
     )
-    def test_reincluded_stop_word(self, sentence, stop_words_to_add_back, expected):
+    def test_reincluded_stop_word_for_word_embedding(
+        self, sentence, stop_words_to_add_back, expected
+    ):
         """
         Testing if adding back stop words function works
         """
@@ -138,7 +140,7 @@ class TestPreprocessingForWordEmbedding:
                 == desired_results[msg]
             )
 
-    def test_url_parsing_simple(self):
+    def test_url_parsing_simple_for_word_embedding(self):
         desired_results = {
             "https://www.nytimes.com/video/multimedia/100000003081122/hot"
             "-commodity-"
@@ -184,7 +186,7 @@ class TestPreprocessingForWordEmbedding:
                 preprocess_text_for_word_embedding(msg, {}, 4) == desired_results[msg]
             )
 
-    def test_url_parsing_in_sentence(self):
+    def test_url_parsing_in_sentence_for_word_embedding(self):
         desired_results = {
             "i found this cool article "
             "https://www.nytimes.com/video/multimedia/"
@@ -347,7 +349,7 @@ class TestPreprocessingForKeywordRule:
             (["the", "out"], ["let", "the", "dog", "out"]),
         ],
     )
-    def test_reincluded_stop_word(
+    def test_reincluded_stop_word_for_keyword_rule(
         self, sentence, porter_stem_func, vanilla_huns, stop_words_to_add_back, expected
     ):
         """
@@ -424,7 +426,7 @@ class TestPreprocessingForKeywordRule:
             ),
         ],
     )
-    def test_url_parsing_simple(
+    def test_url_parsing_simple_for_keyword_rule(
         self, porter_stem_func, vanilla_huns, message, expected
     ):
         assert (
@@ -441,7 +443,7 @@ class TestPreprocessingForKeywordRule:
         )
 
     @pytest.mark.parametrize(
-        "tokens, expected",
+        "message, expected",
         [
             (
                 "i found this cool article https://www.nytimes.com/video/multimedia/"
@@ -526,7 +528,7 @@ class TestPreprocessingForKeywordRule:
             ),
         ],
     )
-    def test_url_parsing_in_sentence(
+    def test_url_parsing_in_sentence_for_keyword_rule(
         self, porter_stem_func, vanilla_huns, message, expected
     ):
         assert (
