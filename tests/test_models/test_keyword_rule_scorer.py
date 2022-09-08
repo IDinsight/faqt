@@ -63,7 +63,7 @@ class TestKeywordRuleEvaluation:
         return preprocess_func
 
     @pytest.mark.parametrize(
-        "rule_id, tokens",
+        "rule_id, message",
         [
             (0, "I have a headache"),
             (0, "Please STOP messaging me 😭😭"),
@@ -94,7 +94,7 @@ class TestKeywordRuleEvaluation:
         assert evaluate_keyword_rule(msg, keyword_rules[rule_id]) is False
 
     @pytest.mark.parametrize(
-        "rule_id, tokens",
+        "rule_id, message",
         [
             (
                 0,
@@ -111,7 +111,7 @@ class TestKeywordRuleEvaluation:
         assert evaluate_keyword_rule(msg, keyword_rules[rule_id]) is True
 
     @pytest.mark.parametrize(
-        "rule_id, tokens, expected",
+        "rule_id, message, expected",
         [
             (
                 0,
@@ -144,7 +144,7 @@ class TestKeywordRuleEvaluation:
         assert vals[rule_id] is expected
 
     @pytest.mark.parametrize(
-        "tokens",
+        "message",
         [
             "hello Please wht kind of painkillers would u recomend me",
             "Please STOP messaging me 😭😭hello",
