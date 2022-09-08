@@ -77,7 +77,7 @@ class TestKeywordRuleEvaluation:
         assert evaluate_keyword_rule(msg, keyword_rules[rule_id]) is False
 
     @pytest.mark.parametrize(
-        "rule_id, tokens",
+        "rule_id, message",
         [
             (1, "Please wht kind of painkillers would u recomend me"),
             (2, "hello wht kind of painkillers would u recomend me"),
