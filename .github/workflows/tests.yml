@@ -34,7 +34,7 @@ jobs:
       - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
         name: Download huggingface model
         with:
-          command: copy
+          command: cp
           source: ${{ secrets.WORD2VEC_BINARY_BUCKET }}/huggingface_model.tar.gz
           destination: ./tests/data/sequence_classification_models/
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
