@@ -567,7 +567,7 @@ class TestPreprocessingForKeywordRule:
         ) == ["stop", "text", "pl"]
 
     @pytest.mark.parametrize(
-        "tokens, expected",
+        "message, expected",
         [
             (
                 "I had pian in virginia for the last 2 wks help",
@@ -587,7 +587,7 @@ class TestPreprocessingForKeywordRule:
         )
 
     @pytest.mark.parametrize(
-        "tokens, expected",
+        "message, expected",
         [
             (
                 "I had pian in virginia for the last 2 wks help",
@@ -700,7 +700,7 @@ class TestPreprocessingForKeywordRule:
         )
 
     @pytest.mark.parametrize(
-        "tokens",
+        "message",
         [
             "https://www.givingwhatwecan.org/get-involved/birthday-fundraisers/",
             "🆗",
