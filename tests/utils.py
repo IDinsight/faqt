@@ -41,7 +41,7 @@ def download_huggingface_model_from_s3(bucket, folder, filename):
     download_path = dir_path / f"{filename}.tar.gz"
 
     s3 = boto3.client("s3")
-    s3.download_file(bucket, filename, download_path)
+    s3.download_file(bucket, f"{filename}.tar.gz", download_path)
 
     shutil.unpack_archive(download_path, full_path)
 
