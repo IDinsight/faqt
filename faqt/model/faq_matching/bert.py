@@ -11,7 +11,10 @@ class QuestionAnswerBERTScorer:
         Parameters
         ----------
         model_path : str
-            path to Huggingface transformers model directory
+            Path to HuggingFace transformers model directory. If trained
+            locally, it should be the directory passed to
+            `transformers.Trainer.save_model()` function
+            or `transformers.Model.save_pretrained()` function.
         batch_size : int, default=1
             batch size for predictions
         """
