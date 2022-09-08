@@ -31,7 +31,7 @@ class QuestionAnswerBERTScorer:
         self.num_contents = None
 
     @property
-    def contents_set(self):
+    def is_set(self):
         """checks if contents are set"""
         return not (self.messages is None or self.contents is None)
 
@@ -74,21 +74,21 @@ class QuestionAnswerBERTScorer:
         tag_scores
 
         """
-        if not self.contents_set:
+        if not self.is_set:
             raise ValueError(
                 "Contents unavailable. Set contents first using "
-                "`.set_contents(...)`."
+                "`self.set_contents()`."
             )
         inputs = [{"text": message, "text_pair": content} for content in self.contents]
         outputs_generator = self.model(inputs)
 
-        relevance_scores = []
+        scores = []
 
         for i, prediction in enumerate(outputs_generator):
             is_one = int(prediction["label"] == "LABEL_1")
-            score = prediction["score"]
+            _score = prediction["score"]
 
-            relevance_score = (1 - is_one) * (1 - score) + is_one * score
-            relevance_scores.append(relevance_score)
+            score = (1 - is_one) * (1 - _score) + is_one * _score
+            scores.append(score)
 
-        return relevance_scores
+        return scores
