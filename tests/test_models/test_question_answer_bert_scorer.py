@@ -32,7 +32,6 @@ class TestQuestionAnswerBERTScorer:
         model_folder = "huggingface_model"
         full_path = Path(__file__).parents[1] / "data" / folder / model_folder
         path = str(full_path)
-        print(path)
 
         return QuestionAnswerBERTScorer(model_path=path)
 
@@ -49,6 +48,7 @@ class TestQuestionAnswerBERTScorer:
     def test_scorer_model_is_loaded(self, bert_scorer):
         assert isinstance(bert_scorer.model, Pipeline)
 
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_scoring_without_setting_raises_error(self, bert_scorer):
         with pytest.raises(
             ValueError, match="Set contents first using `self\.set_contents\(\)`."
@@ -60,6 +60,7 @@ class TestQuestionAnswerBERTScorer:
 
         assert all(c1 == c2 for c1, c2 in zip(set_scorer.contents, contents))
 
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     @pytest.mark.parametrize("question, correct_content_idx", test_data)
     def test_score_contents(self, bert_scorer, question, correct_content_idx, contents):
         bert_scorer.set_contents(contents=contents)
@@ -67,6 +68,7 @@ class TestQuestionAnswerBERTScorer:
 
         assert np.argmax(scores) == correct_content_idx
 
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_score_contetns_on_empty_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
@@ -75,6 +77,7 @@ class TestQuestionAnswerBERTScorer:
 
         assert len(scores) == len(contents)
 
+    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_score_contetns_on_long_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
