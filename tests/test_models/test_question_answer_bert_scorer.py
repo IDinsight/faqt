@@ -32,6 +32,7 @@ class TestQuestionAnswerBERTScorer:
         model_folder = "huggingface_model"
         full_path = Path(__file__).parents[1] / "data" / folder / model_folder
         path = str(full_path)
+        print(path)
 
         return QuestionAnswerBERTScorer(model_path=path)
 
