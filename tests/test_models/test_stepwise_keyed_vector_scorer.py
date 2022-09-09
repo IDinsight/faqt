@@ -14,7 +14,8 @@ class TestStepwiseKeyedVectorScorer:
 
     sample_messages = [
         "\U0001f600\U0001f929\U0001f617",
-        """ I'm worried about the vaccines. Can I have some information? \U0001f600
+        """ I'm worried 
+    about the vaccines. Can I have some information? \U0001f600
             πλέων ἐπὶ οἴνοπα πόντον ἐπ᾽ ἀλλοθρόους ἀνθρώπους, ἐς Τεμέσην
         """,
         "cuoisn mircochippde my ddady with vcacines",
@@ -66,7 +67,7 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture(scope="class")
     def tagsets(self):
-        full_path = Path(__file__).parent / "data/tag_test_data.yaml"
+        full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
         with open(full_path) as file:
             yaml_dict = yaml.full_load(file)
 
@@ -75,7 +76,7 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture(scope="class")
     def tagset_weights(self):
-        full_path = Path(__file__).parent / "data/tag_test_data.yaml"
+        full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
         with open(full_path) as file:
             yaml_dict = yaml.full_load(file)
 
@@ -198,3 +199,24 @@ class TestStepwiseKeyedVectorScorer:
             ValueError, match="Set contents with `self\.set_contents\(\)`"
         ):
             basic_model.score_contents("test message")
+
+    @pytest.mark.parametrize(
+        "input_text",
+        sample_messages,
+    )
+    def test_return_tag_scores_flag(self, basic_model, tagsets, input_text):
+        basic_model.set_contents(tagsets)
+        result = basic_model.score_contents(input_text, return_tag_scores=True)
+
+        assert "tag_scores" in result
+        assert len(result["overall_scores"]) == len(result["tag_scores"])
+
+    @pytest.mark.parametrize(
+        "input_text",
+        sample_messages,
+    )
+    def test_return_spell_corrected_flag(self, basic_model, tagsets, input_text):
+        basic_model.set_contents(tagsets)
+        result = basic_model.score_contents(input_text, return_spell_corrected=True)
+
+        assert "spell_corrected" in result
