@@ -5,14 +5,10 @@
 
 import numpy as np
 import pytest
-<<<<<<< HEAD:tests/test_preprocessing/test_misspelling.py
 from faqt.model.faq_matching.keyed_vectors_scoring import (
     model_search,
     model_search_word,
 )
-=======
-from faqt.model.faq_matching.keyed_vector_scoring import model_search, model_search_word
->>>>>>> 2cba963 (restructure modules):tests/test_misspelling.py
 
 pytestmark = pytest.mark.slow
 
