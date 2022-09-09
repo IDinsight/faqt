@@ -8,7 +8,7 @@ from transformers import Pipeline
 
 
 def load_test_data():
-    full_path = Path(__file__).parent / "data/tag_test_data.yaml"
+    full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
 
     with open(full_path) as file:
         yaml_dict = yaml.full_load(file)
@@ -32,7 +32,7 @@ class TestQuestionAnswerBERTScorer:
 
     @pytest.fixture(scope="class")
     def contents(self):
-        full_path = Path(__file__).parent / "data/tag_test_data.yaml"
+        full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
 
         with open(full_path) as file:
             yaml_dict = yaml.full_load(file)
