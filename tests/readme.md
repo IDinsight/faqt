@@ -8,8 +8,8 @@ In order to run tests locally, you need
   - At present, it loads the Google New Model and looks for a file called
 `GoogleNews-vectors-negative300-prenorm.bin` which is the only embeddings model that has
 been tested.
-- huggingface sequence classification model (for question-answer pair scoring), in `data/sequence_classification` 
-  - At present, the tests looks for `huggingface-pytorch-training-2022-07-30-15-57-13-503__output__model`.
+- HuggingFace `transformers` sequence classification model (for question-answer pair scoring), in `data/sequence_classification`
+  - At present, the tests looks for a directory called `huggingface_model`.
 
 
 ## Run tests
