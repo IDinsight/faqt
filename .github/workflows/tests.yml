@@ -32,7 +32,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Make huggingface model dir
-        run: mkdir -p ./tests/data/sequence_classification_models/huggingface
+        run: mkdir -p ./tests/data/sequence_classification_models/huggingface_model
       - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
         name: Download huggingface model
         with:
@@ -44,10 +44,10 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
       - name: Unpack huggingface model
         run: |
-          tar -xvf ./tests/data/sequence_classification_models/huggingface_model.tar.gz -C ./tests/data/sequence_classification_models/huggingface_models
+          tar -xvf ./tests/data/sequence_classification_models/huggingface_model.tar.gz -C ./tests/data/sequence_classification_models/huggingface_model
           rm ./tests/data/sequence_classification_models/huggingface_model.tar.gz
           echo ${{ env.GITHUB_WORKSPACE }}
-          echo "model saved to ./tests/data/sequence_classification_models/huggingface_models"
+          echo "model saved to ./tests/data/sequence_classification_models/huggingface_model"
       - name: Run Unit Tests
         env:
           WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
