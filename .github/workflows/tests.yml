@@ -46,7 +46,6 @@ jobs:
         run: |
           tar -xvf ./tests/data/sequence_classification_models/huggingface_model.tar.gz -C ./tests/data/sequence_classification_models/huggingface_model
           rm ./tests/data/sequence_classification_models/huggingface_model.tar.gz
-          echo ${{ env.GITHUB_WORKSPACE }}
           echo "model saved to ./tests/data/sequence_classification_models/huggingface_model"
       - name: Run Unit Tests
         env:
