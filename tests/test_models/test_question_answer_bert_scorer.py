@@ -27,8 +27,13 @@ class TestQuestionAnswerBERTScorer:
     test_data = load_test_data()
 
     @pytest.fixture
-    def bert_scorer(self, bert_model_path):
-        return QuestionAnswerBERTScorer(model_path=bert_model_path)
+    def bert_scorer(self):
+        folder = "sequence_classification_models"
+        model_folder = "huggingface_model"
+        full_path = Path(__file__).parent / "data" / folder / model_folder
+        path = str(full_path)
+
+        return QuestionAnswerBERTScorer(model_path=path)
 
     @pytest.fixture(scope="class")
     def contents(self):
