@@ -30,7 +30,8 @@ class TestQuestionAnswerBERTScorer:
     def bert_scorer(self):
         folder = "sequence_classification_models"
         model_folder = "huggingface_model"
-        path = f"../data/{folder}/{model_folder}"
+        full_path = Path(__file__).parents[1] / "data" / folder / model_folder
+        path = str(full_path)
 
         return QuestionAnswerBERTScorer(model_path=path)
 
