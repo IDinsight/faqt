@@ -31,25 +31,6 @@ def load_wv_pretrained_bin(folder, filename):
     return model
 
 
-def download_huggingface_model_from_s3(bucket, folder, filename):
-    """Downloads model archive, unpackes it, then deletes the original
-    archive. Returns the path to the huggingface model folder."""
-    dir_path = Path(__file__).parent / "data" / folder
-    full_path = dir_path / filename
-
-    os.makedirs(dir_path, exist_ok=True)
-    download_path = str(dir_path / f"{filename}.tar.gz")
-
-    s3 = boto3.client("s3")
-    s3.download_file(bucket, f"{filename}.tar.gz", download_path)
-
-    shutil.unpack_archive(download_path, full_path)
-
-    os.remove(download_path)
-
-    return full_path
-
-
 def get_topic_scores_for_message(inbound_vectors, topics, scores):
     """
     Returns tag_scores for the inbound vectors against each topic
