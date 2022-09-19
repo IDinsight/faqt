@@ -69,7 +69,7 @@ class TestQuestionAnswerBERTScorer:
         assert np.argmax(scores) == correct_content_idx
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
-    def test_score_contetns_on_empty_msg_still_returns_scores(
+    def test_score_contents_on_empty_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
         bert_scorer.set_contents(contents=contents)
@@ -78,7 +78,7 @@ class TestQuestionAnswerBERTScorer:
         assert len(scores) == len(contents)
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
-    def test_score_contetns_on_long_msg_still_returns_scores(
+    def test_score_contents_on_long_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
         """Checks that inputs with length > model max length gets truncated"""

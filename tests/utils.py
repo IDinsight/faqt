@@ -1,8 +1,6 @@
 import os
-import shutil
 from pathlib import Path
 
-import boto3
 import numpy as np
 from gensim.models import KeyedVectors
 
