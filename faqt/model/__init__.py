@@ -1,6 +1,10 @@
-from faqt.model.faq_matching.keyed_vector_scoring import (
+from faqt.model.faq_matching.keyed_vectors_scoring import (
     KeyedVectorsScorer,
-    StepwiseKeyedVectorScorer,
+    StepwiseKeyedVectorsScorer,
+)
+from faqt.model.urgency_detection.keyword_rule_matching_model import (
+    KeywordRule,
+    evaluate_keyword_rules,
 )
 
 # TODO: import BERT models here, too

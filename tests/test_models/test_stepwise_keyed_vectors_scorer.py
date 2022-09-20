@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import yaml
-from faqt.model import StepwiseKeyedVectorScorer
+from faqt.model import StepwiseKeyedVectorsScorer
 from faqt.preprocessing import preprocess_text_for_word_embedding
 
 pytestmark = pytest.mark.slow
@@ -30,7 +30,7 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = StepwiseKeyedVectorScorer(
+        faqt = StepwiseKeyedVectorsScorer(
             w2v_model,
             tag_scoring_method="cs_nearest_k_percent_average",
             tag_scoring_kwargs=dict(k=100, floor=1),
@@ -41,7 +41,7 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture
     def weighted_scoring_model(self, w2v_model):
-        faqt = StepwiseKeyedVectorScorer(
+        faqt = StepwiseKeyedVectorsScorer(
             w2v_model,
             tag_scoring_method="cs_nearest_k_percent_average",
             tag_scoring_kwargs=dict(k=100, floor=1),
@@ -54,7 +54,7 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture
     def hunspell_model(self, w2v_model, hunspell):
-        faqt = StepwiseKeyedVectorScorer(
+        faqt = StepwiseKeyedVectorsScorer(
             w2v_model,
             tag_scoring_method="cs_nearest_k_percent_average",
             tag_scoring_kwargs=dict(k=100, floor=1),
@@ -91,9 +91,9 @@ class TestStepwiseKeyedVectorScorer:
     ):
         basic_model.set_contents(tagsets, weights=None)
 
-        assert hasattr(basic_model, "tagsets")
-        assert hasattr(basic_model, "tagset_wvs")
-        assert hasattr(basic_model, "tagset_weights")
+        assert basic_model.tagsets is not None
+        assert basic_model.tagset_wvs is not None
+        assert basic_model.tagset_weights is None
 
     @pytest.mark.parametrize("input_text", sample_messages)
     def test_basic_model_score_with_empty_tags_returns_empty_scores(

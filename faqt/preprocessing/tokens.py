@@ -1,6 +1,6 @@
 """Preprocessing functions that operate on a token or list of tokens."""
-from itertools import tee, chain
 from copy import copy
+from itertools import chain, tee
 
 from hunspell import Hunspell
 from nltk.corpus import stopwords
@@ -9,9 +9,9 @@ from nltk.corpus import stopwords
 def _get_ngrams(tokens, n):
     """Return an iterator of ngram tuples from tokens:
 
-        get_ngram_iterator('ABCD', 2) --> [('A', 'B'), ('B', 'C'), ('C', 'D')]
-        get_ngram_iterator('ABCD', 3) --> [('A', 'B', 'C'), ('B', 'C', 'D')]
-        get_ngram_iterator('A', 2) --> []
+    get_ngram_iterator('ABCD', 2) --> [('A', 'B'), ('B', 'C'), ('C', 'D')]
+    get_ngram_iterator('ABCD', 3) --> [('A', 'B', 'C'), ('B', 'C', 'D')]
+    get_ngram_iterator('A', 2) --> []
 
     """
     token_iterables = tee(tokens, n)
@@ -29,9 +29,7 @@ def get_ngrams(tokens, ngram_min, ngram_max):
     assert ngram_max > 0
     assert ngram_max >= ngram_min
 
-    mapped = map(
-        lambda n: _get_ngrams(tokens, n), range(ngram_min, ngram_max + 1)
-    )
+    mapped = map(lambda n: _get_ngrams(tokens, n), range(ngram_min, ngram_max + 1))
     chained = chain(*mapped)
     chained_list = list(chained)
     return chained_list
@@ -44,7 +42,7 @@ def connect_phrases(tokens, entities_dict):
 
     Parameters
     ----------
-    tokens : list of str
+    tokens : list[str]
     entities_dict : dict[tuple, str]
         Example: entities_dict[('african', 'union')] = "African_Union"
 
@@ -59,8 +57,8 @@ def connect_phrases(tokens, entities_dict):
     for n in [2, 3]:
         for i, ngram in enumerate(_get_ngrams(_tokens, n)):
             if ngram in entities_dict:
-                tokens_to_replace = [entities_dict[ngram]] + ([None] * (n-1))
-                tokens_connected[i: i+n] = tokens_to_replace
+                tokens_to_replace = [entities_dict[ngram]] + ([None] * (n - 1))
+                tokens_connected[i : i + n] = tokens_to_replace
 
     tokens_connected = list(filter(None, tokens_connected))
     return tokens_connected
@@ -93,9 +91,13 @@ class CustomHunspell(object):
             spell-corrected words, in order of preference.
 
     """
+
     def __init__(
-        self, custom_spell_check_list=None,
-        custom_spell_correct_map=None, priority_words=None, hunspell=None
+        self,
+        custom_spell_check_list=None,
+        custom_spell_correct_map=None,
+        priority_words=None,
+        hunspell=None,
     ):
         """
 
@@ -159,13 +161,13 @@ class CustomHunspell(object):
         corrected_token = self.custom_spell_correct_map.get(token, None)
 
         if corrected_token is not None:
-            return (corrected_token, )
+            return (corrected_token,)
 
         suggestions = self._hunspell.suggest(token)
 
         if len(suggestions) > 0:
             for word in self.priority_words:
                 if word in suggestions:
-                    return (word, )
+                    return (word,)
 
         return suggestions

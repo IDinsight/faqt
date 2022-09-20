@@ -23,51 +23,52 @@ def _generate_regex_dashed_url(n_min_dashed_words_url):
     return regexp
 
 
-def process_urls(content, n_min_dashed_words_url):
+def process_urls(text, n_min_dashed_words_url):
     """
-    Remove URLs from text, but include any relevant content summaries from URL
+    Remove URLs from text, but include any relevant message summaries from URL
 
     Parameters
     ----------
-    content : str
-        Text WhatsApp tokens
+    text : str
+        Text to process
     n_min_dashed_words_url : int
         The number of words that must be separated by dashes in a URL, to treat the
-        text as an actual relevant content summary. We only allow 2 or more
+        text as an actual relevant text summary. We only allow 2 or more
         words to be extracted
 
     Returns
     -------
     str
-        Text WhatsApp tokens, with URLs replaced with any relevant content summaries
+        Text WhatsApp tokens, with URLs replaced with any relevant message
+        summaries
 
     Example
     -------
         Input:
-            *Buhari Fails To Recognise Own Handwriting On NTA (Video)*
+            "*Buhari Fails To Recognise Own Handwriting On NTA (Video)*
             https://www.google.com/url?sa=i&source=web&cd=&ved=2ahUKEwjAlKiMv5_gAhWVD2M
             BHRujDbQQzPwBegQIARAC&url=https%3A%2F%2Fwww.herald.ng%2Fbuhari-fails-to-rec
             ognise-own-handwriting-on-nta-video%2F&psig=AOvVaw3zF9dZ2j_HKcdSie7KkTeu&us
-            t=1549280861065125
+            t=1549280861065125"
         Output:
-            *Buhari Fails To Recognise Own Handwriting On NTA (Video)* buhari-fails-to-
-            recognise-own-handwriting-on-nta-video
+            "*Buhari Fails To Recognise Own Handwriting On NTA (Video)* buhari-fails-to-
+            recognise-own-handwriting-on-nta-video"
     """
     if n_min_dashed_words_url <= 1:
         n_min_dashed_words_url = 2
 
-    content = urllib.parse.unquote(content)
+    text = urllib.parse.unquote(text)
 
-    urls = re.findall(r"((?:https?:\/\/|www)(?:[^ ]+))", content)
+    urls = re.findall(r"((?:https?:\/\/|www)(?:[^ ]+))", text)
 
     for url in urls:
         # We only extract portions with N_WORDS_MIN or more words separated by dashes
         extract = re.findall(_generate_regex_dashed_url(n_min_dashed_words_url), url)
         extract = " ".join(extract)
 
-        content = content.replace(url, extract)
+        text = text.replace(url, extract)
 
-    return content
+    return text
 
 
 def remove_punctuation(text):

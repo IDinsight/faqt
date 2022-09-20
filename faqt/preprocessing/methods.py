@@ -11,7 +11,7 @@ from nltk.tokenize import word_tokenize
 
 
 def preprocess_text_for_word_embedding(
-    content, entities_dict, n_min_dashed_words_url, reincluded_stop_words=None
+    text, entities_dict, n_min_dashed_words_url, reincluded_stop_words=None
 ):
     """
     Preprocess raw text strings to approximate preprocessing that goes into
@@ -29,8 +29,8 @@ def preprocess_text_for_word_embedding(
 
     Parameters
     ----------
-    content : str
-        Original raw WhatsApp tokens
+    text : str
+        Text to preprocess
     entities_dict : Dict[Tuple[str], str]
         Example: entities_dict[('African', 'Union')] = "African_Union"
     n_min_dashed_words_url : Int
@@ -45,9 +45,9 @@ def preprocess_text_for_word_embedding(
         Pre-processed text as list of tokens.
     """
 
-    content = process_urls(content, n_min_dashed_words_url)
-    content = remove_punctuation(content)
-    tokens = word_tokenize(content)
+    text = process_urls(text, n_min_dashed_words_url)
+    text = remove_punctuation(text)
+    tokens = word_tokenize(text)
 
     tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
     tokens = connect_phrases(tokens, entities_dict)
@@ -56,7 +56,7 @@ def preprocess_text_for_word_embedding(
 
 
 def preprocess_text_for_keyword_rule(
-    content,
+    text,
     n_min_dashed_words_url,
     stem_func,
     spell_checker,
@@ -76,11 +76,11 @@ def preprocess_text_for_keyword_rule(
 
     Parameters
     ----------
-    content : str
-        Original raw WhatsApp tokens
+    text : str
+        Text to preprocess
     n_min_dashed_words_url : Int
         The number of words that must be separated by dashes in a URL, to treat the
-        text as an actual relevant content summary
+        text as an actual relevant text summary
     stem_func: Callable
         A function that stems a given word
     spell_checker : hunspell.Hunspell instance or object
@@ -103,11 +103,11 @@ def preprocess_text_for_keyword_rule(
     """
     assert ngram_max >= ngram_min
 
-    content = content.lower()
-    content = process_urls(content, n_min_dashed_words_url=n_min_dashed_words_url)
-    content = remove_punctuation(content)
+    text = text.lower()
+    text = process_urls(text, n_min_dashed_words_url=n_min_dashed_words_url)
+    text = remove_punctuation(text)
 
-    tokens = word_tokenize(content)
+    tokens = word_tokenize(text)
     tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
 
     def spell_check_or_suggest(x):

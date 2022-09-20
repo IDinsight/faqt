@@ -2,7 +2,10 @@ import math
 
 import numpy as np
 import pytest
-from faqt.model.faq_matching.keyed_vector_scoring import model_search, model_search_word
+from faqt.model.faq_matching.keyed_vectors_scoring import (
+    model_search,
+    model_search_word,
+)
 from faqt.scoring.tag_scoring import cs_nearest_k_percent_average
 
 # Need to tune these dimensions if not using Google News pretrained model

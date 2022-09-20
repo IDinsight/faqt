@@ -43,7 +43,8 @@ class KeyedVectorsScorerBase(ABC):
             highest cosine
             similarity to any of the wvs in tags_guiding_typos_wvs.
 
-            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" --> "child"
+            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
+            "child"
             rather than "chills", even though both are same edit distance.
 
             Optional parameter. If None (or None equivalent), we assume not no
@@ -95,11 +96,15 @@ class KeyedVectorsScorerBase(ABC):
         self.weighting_method = weighting_method
         self.weighting_kwargs = weighting_kwargs
 
+        self.tagsets = None
+        self.tagset_wvs = None
+        self.tagset_weights = None
+
     def set_contents(self, tagsets, weights=None):
         """
         Set the contents that messages should be matched against.
 
-        For this class, each content must be (represented by) a tagset,
+        For this class, each message must be (represented by) a tagset,
         which is a collection of words (tags) designated to match incoming
         messages.
 
@@ -130,8 +135,11 @@ class KeyedVectorsScorerBase(ABC):
                         tag2vector[tag] = word_vector
                 tagset_wvs.append(tag2vector)
 
-        self.tagsets = tagsets
-        self.tagset_wvs = tagset_wvs
+        if self.tagset_weights is not None and weights is None:
+            warn(
+                "You have previously set contents with `weights` that are "
+                "not None, but are now setting the weights to be None."
+            )
 
         if weights is None and self.weighting_method is not None:
             warn(
@@ -149,21 +157,27 @@ class KeyedVectorsScorerBase(ABC):
             if not np.isclose(np.sum(weights), 1.0):
                 weights = weights / np.sum(weights)
 
+        self.tagsets = tagsets
+        self.tagset_wvs = tagset_wvs
         self.tagset_weights = weights
 
         return self
 
     def score_contents(self, message, return_spell_corrected=False, **kwargs):
         """
-        Scores contents and applies weighting if `self.weighting_method` is not None
+        Scores contents and applies weighting if `self.weighting_method` is
+        not None
 
         Parameters
         ----------
         message : str
-        return_spell_corrected : bool
+        return_spell_corrected : bool, default=False
         kwargs :
             additional keyword arguments to pass.
-            e.g. for StepwiseKeyedVectorScorer, `return_tag_scores=True` will include in the return dictionary, in "tag_scores" a dictionary of tags with scores for each token in the message.
+            e.g. for StepwiseKeyedVectorsScorer, `return_tag_scores=True` will
+            include an extra item in the return dictionary, with key
+            "tag_scores" and value a dictionary of tags with scores for each
+            token in the message.
 
         Returns
         -------
@@ -172,13 +186,13 @@ class KeyedVectorsScorerBase(ABC):
             order stored in `self.tagsets`.
             `return_dict["spell_corrected"]` : List of spell-corrected
             pre-processed tokens from `message`
-            If this is called from a StepwiseKeyedVectorScorer,
+            If this is called from a StepwiseKeyedVectorsScorer,
             `return_dict["tag_scores"]`: List of dictionaries of score assigned
             to each tag in each tagset
         """
         if not self.is_set:
             raise ValueError(
-                "Contents have not been set. Set contents with `self.set_contents()`"
+                "Contents have not been set. Set contents with " "`self.set_contents()`"
             )
 
         message_vectors, spell_corrected = self.model_search(message)
@@ -213,11 +227,7 @@ class KeyedVectorsScorerBase(ABC):
 
     @property
     def is_set(self):
-        return (
-            hasattr(self, "tagsets")
-            and hasattr(self, "tagset_wvs")
-            and hasattr(self, "tagset_weights")
-        )
+        return self.tagsets is not None and self.tagset_wvs is not None
 
     def model_search_word(self, word):
         """
@@ -300,7 +310,8 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
             highest cosine
             similarity to any of the wvs in tags_guiding_typos_wvs.
 
-            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" --> "child"
+            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
+            "child"
             rather than "chills", even though both are same edit distance.
 
             Optional parameter. If None (or None equivalent), we assume not no
@@ -355,7 +366,7 @@ class KeyedVectorsScorer(KeyedVectorsScorerBase):
         return return_dict
 
 
-class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
+class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
     """Stepwise model"""
 
     def __init__(
@@ -384,7 +395,8 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
             Only google news word2vec binaries have been tested. Vectors must be
             pre-normalized. See Notes below.
 
-        tag_scoring_method : string or Callable, default: "cs_nearest_k_percent_average"
+        tag_scoring_method : string or Callable, default:
+        "cs_nearest_k_percent_average"
             If a string is passed, it must be in
             `faqt.scoring.tag_scoring.TAG_SCORING_METHODS`.
 
@@ -417,7 +429,6 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
         weighting_kwargs : dict, optional
             Keyword arguments to pass to `weighting_method`
 
-
         glossary: Dict[str, Dict[str, float]], optional
             Custom contextualization glossary. Words to replace are keys; their
             values
@@ -448,7 +459,7 @@ class StepwiseKeyedVectorScorer(KeyedVectorsScorerBase):
         * A tagsets is a collection of words (tags) designated to match incoming
           messages
         """
-        super(StepwiseKeyedVectorScorer, self).__init__(
+        super(StepwiseKeyedVectorsScorer, self).__init__(
             word_embedding_model,
             glossary,
             hunspell,
@@ -624,8 +635,26 @@ def model_search(
     return_spellcorrected_text=False,
 ):
     """
-    Returns list of vector embeddings corresponding to given tokens
+    Returns list of vector embeddings corresponding to given tokens. See
+    `faqt.model.faq_matching.keyed_vector_scoring.model_search_word` for how
+    exactly the tokens are searched in the model.
 
+    word : str
+    model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
+    glossary : dict
+        Custom contextualization glossary. Words to replace are keys; their values
+        must be dictionaries with (replacement words : weight) as key-value pairs
+    hunspell : Hunspell object
+        Very expensive to load, so should use shared object
+    tags_guiding_typos_wv : list
+        Set of tag wvs to guide the correction of misspelled words.For misspelled words,
+        the best alternative spelling is that with highest cosine similarity
+        to any of the wvs in tags_guiding_typos_wvs.
+
+        E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" --> "child"
+        rather than "chills", even though both are same edit distance.
+
+        Optional parameter.
     return_spellcorrected_text : boolean
         If True, returns tuple (list[vector embeddings], list[spell-corrected tokens])
     """
