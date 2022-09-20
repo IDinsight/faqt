@@ -18,7 +18,7 @@ class QuestionAnswerBERTScorer:
             `transformers.Trainer.save_model()` function
             or `transformers.Model.save_pretrained()` function.
         batch_size : int, default=1
-            batch size for predictions
+            Batch size for predictions
         """
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         classifier = AutoModelForSequenceClassification.from_pretrained(model_path)
@@ -61,25 +61,15 @@ class QuestionAnswerBERTScorer:
 
     @property
     def is_set(self):
-        """checks if contents are set"""
+        """Check if contents are set"""
         return self.contents is not None
 
     def set_contents(self, contents):
         """
-        "Fit" model with FAQ content (answers) and associated example questions by
-        1. generating negative samples
-        2. creating BERT inputs of question, answer pairs
-        3. tokenizing
-        4. training
-
-        Each step may be implemented in a separate class method or
-        module-level method.
+        Saves contents for this scorer
 
         Parameters
         ----------
-        messages : List-like[List[str]]
-            `messages[i]` are the example messages associated with `contents[
-            i]`.
         contents : List-like[str]
             FAQ contents.
         """
@@ -94,11 +84,13 @@ class QuestionAnswerBERTScorer:
         Parameters
         ----------
         message : str
-        kwargs :
+            Message to score each content against
 
         Returns
         -------
-        tag_scores
+        scores : list[float]
+            List of scores for each content, in the order saved in
+            `self.contents`
 
         """
         if not self.is_set:
