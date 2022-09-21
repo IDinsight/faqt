@@ -1,3 +1,8 @@
+# data folder
+data/
+!tests/data
+!tests/data/*.yaml
+tests/data/*
 # google new binary
 GoogleNews-vectors-negative300-prenorm.bin
 
@@ -140,7 +145,7 @@ dmypy.json
 *secrets*
 
 # Mac artifacts and temp files
-.DS_Store
+**/.DS_Store
 *.swp
 
 # Temporarily copied for Docker build
