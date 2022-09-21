@@ -32,15 +32,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Make huggingface model dir
-        run: |
-          echo ">>> ls ./tests"
-          ls ./tests
-          echo ">>> ls ./tests/data"
-          ls ./tests/data
-          echo ">>> ls ./tests/data/sequence_classification_models"
-          ls ./tests/data/sequence_classification_models
-          echo ">>> mkdir if not exists"
-          mkdir -p ./tests/data/sequence_classification_models/huggingface_model >/dev/null 2>&1
+        run: mkdir -p ./tests/data/sequence_classification_models/huggingface_model
       - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
         name: Download huggingface model
         with:

@@ -32,7 +32,7 @@ tags_refresh_data:
   - id: 5
     tags: ["draw", "sing", "exercise", "code"]
     content_to_send: >
-      When I feel like exercising, 
+      When I feel like exercising,
       I just lie down until the feeling goes away
     title: "hobby"
     example_questions:
@@ -41,7 +41,7 @@ tags_refresh_data:
   - id: 5
     tags: ["digest", "eat", "chew", "expel"]
     content_to_send: >
-      Nothing would be more tiresome than eating and drinking 
+      Nothing would be more tiresome than eating and drinking
       if God had not made them a pleasure as well as a necessity.
     title: "life"
     example_questions:
