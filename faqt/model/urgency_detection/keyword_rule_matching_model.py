@@ -38,7 +38,7 @@ class KeywordRule:
 
 def evaluate_keyword_rule(message, rule):
     """
-    Check if keyword rule evaluates True on message. Must include all
+    Check if keyword rule evaluates True on tokens. Must include all
     keywords in `rule.include` and must exclude all keywords in
     `rule.exclude`
 
@@ -63,7 +63,7 @@ def evaluate_keyword_rule(message, rule):
 
 def evaluate_keyword_rules(message, keyword_rules):
     """
-    Evaluate keyword rules on the message.
+    Evaluate keyword rules on the tokens.
 
     Parameters
     ----------
@@ -79,7 +79,7 @@ def evaluate_keyword_rules(message, keyword_rules):
     -------
     evaluations : List[bool]
         List of booleans of length `len(rules)`. `evaluations[i]` is
-        the evaluation of `rules[i]` on `message`
+        the evaluation of `rules[i]` on `tokens`
     """
     evaluated_rules = [evaluate_keyword_rule(message, rule) for rule in keyword_rules]
 

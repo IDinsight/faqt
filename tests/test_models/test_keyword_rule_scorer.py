@@ -1,7 +1,7 @@
 from functools import partial
 
 import pytest
-from faqt.model.keyword_rule_matching_model import (
+from faqt.model.urgency_detection.keyword_rule_matching_model import (
     KeywordRule,
     evaluate_keyword_rule,
     evaluate_keyword_rules,
