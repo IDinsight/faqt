@@ -220,3 +220,10 @@ class TestStepwiseKeyedVectorScorer:
         result = basic_model.score_contents(input_text, return_spell_corrected=True)
 
         assert "spell_corrected" in result
+
+    def test_resetting_contents_without_weights_is_allowed_with_warning(
+        self, weighted_scoring_model, tagsets, tagset_weights
+    ):
+        weighted_scoring_model.set_contents(tagsets, weights=tagset_weights)
+        with pytest.raises(UserWarning):
+            weighted_scoring_model.set_contents([], weights=None)
