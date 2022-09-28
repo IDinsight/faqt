@@ -88,10 +88,8 @@ class QuestionAnswerBERTScorer:
 
         Returns
         -------
-        scores : list[float]
-            List of scores for each content, in the order saved in
-            `self.contents`
-
+        return_dict : dict
+            `return_dict["overall_scores"]` : Score for each content in `self.contents`
         """
         if not self.is_set:
             raise ValueError(

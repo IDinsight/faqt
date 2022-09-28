@@ -48,10 +48,9 @@ class TestQuestionAnswerBERTScorer:
     def test_scorer_model_is_loaded(self, bert_scorer):
         assert isinstance(bert_scorer.model, Pipeline)
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_scoring_without_setting_raises_error(self, bert_scorer):
         with pytest.raises(
-            ValueError, match="Set contents first using `self\.set_contents\(\)`."
+            ValueError, match=r"Set contents first using `self\.set_contents\(\)`\."
         ):
             bert_scorer.score_contents("test message")
 
@@ -60,24 +59,21 @@ class TestQuestionAnswerBERTScorer:
 
         assert all(c1 == c2 for c1, c2 in zip(set_scorer.contents, contents))
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     @pytest.mark.parametrize("question, correct_content_idx", test_data)
     def test_score_contents(self, bert_scorer, question, correct_content_idx, contents):
         bert_scorer.set_contents(contents=contents)
         scores = bert_scorer.score_contents(question)
 
-        assert np.argmax(scores) == correct_content_idx
+        assert np.argmax(scores["overall_scores"]) == correct_content_idx
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_score_contents_on_empty_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
         bert_scorer.set_contents(contents=contents)
         scores = bert_scorer.score_contents("")
 
-        assert len(scores) == len(contents)
+        assert len(scores["overall_scores"]) == len(contents)
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_score_contents_on_long_msg_still_returns_scores(
         self, bert_scorer, contents
     ):
@@ -87,4 +83,4 @@ class TestQuestionAnswerBERTScorer:
         really_long_message = "word " * num_tokens
         scores = bert_scorer.score_contents(really_long_message)
 
-        assert len(scores) == len(contents)
+        assert len(scores["overall_scores"]) == len(contents)
