@@ -111,4 +111,5 @@ class QuestionAnswerBERTScorer:
             score = (1 - is_one) * (1 - _score) + is_one * _score
             scores.append(score)
 
-        return scores
+        return_dict = {"overall_scores": scores}
+        return return_dict
