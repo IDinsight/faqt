@@ -116,24 +116,24 @@ class TestKeywordRuleEvaluation:
             (
                 0,
                 "Hello I have a headache, feel dizzy, and everything looks " "blurry",
-                True,
+                1.0,
             ),
             (
                 1,
                 "Hello I have a headache, feel dizzy, and everything looks " "blurry",
-                False,
+                0.0,
             ),
             (
                 2,
                 "Hello I have a headache, feel dizzy, and everything looks " "blurry",
-                False,
+                0.0,
             ),
-            (0, "hello My back pain is killing me :(", False),
-            (1, "hello My back pain is killing me :(", True),
-            (2, "hello My back pain is killing me :(", False),
-            (0, "What painkiller shd i take", False),
-            (1, "What painkiller shd i take", False),
-            (2, "What painkiller shd i take", True),
+            (0, "hello My back pain is killing me :(", 0.0),
+            (1, "hello My back pain is killing me :(", 1.0),
+            (2, "hello My back pain is killing me :(", 0.0),
+            (0, "What painkiller shd i take", 0.0),
+            (1, "What painkiller shd i take", 0.0),
+            (2, "What painkiller shd i take", 1.0),
         ],
     )
     def test_evaluate_rules_true_for_only_one_rule(
@@ -141,7 +141,7 @@ class TestKeywordRuleEvaluation:
     ):
         msg = preprocess_func(message)
         vals = evaluate_keyword_rules(msg, keyword_rules)
-        assert vals[rule_id] is expected
+        assert vals[rule_id] == expected
 
     @pytest.mark.parametrize(
         "message",
@@ -155,4 +155,4 @@ class TestKeywordRuleEvaluation:
     ):
         msg = preprocess_func(message)
         vals = evaluate_keyword_rules(msg, keyword_rules)
-        assert all(result is False for result in vals)
+        assert all(result == 0.0 for result in vals)
