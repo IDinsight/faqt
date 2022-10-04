@@ -244,6 +244,7 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
     def __init__(
         self,
         word_embedding_model,
+        tokenizer=None,
         tag_scoring_method="cs_nearest_k_percent_average",
         tag_scoring_kwargs=None,
         score_reduction_method="simple_mean",
@@ -313,12 +314,11 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
         tags_guiding_typos: List[str], optional
             Set of tag wvs to guide the correction of misspelled words.
             For misspelled words, the best alternative spelling is that with
-            highest cosine
-            similarity to any of the wvs in tags_guiding_typos_wvs.
+            highest cosine similarity to any of the wvs in `tags_guiding_typos_wvs.`
 
             E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
-            "child"
-            rather than "chills", even though both are same edit distance.
+            "child" rather than "chills", even though both are same edit
+            distance.
 
             Optional parameter. If None (or None equivalent), we assume not no
             guiding tags'
@@ -333,11 +333,12 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
         """
         super(StepwiseKeyedVectorsScorer, self).__init__(
             word_embedding_model,
-            glossary,
-            hunspell,
-            tags_guiding_typos,
-            weighting_method,
-            weighting_kwargs,
+            tokenizer=tokenizer,
+            glossary=glossary,
+            hunspell=hunspell,
+            tags_guiding_typos=tags_guiding_typos,
+            weighting_method=weighting_method,
+            weighting_kwargs=weighting_kwargs,
         )
 
         if isinstance(tag_scoring_method, str):

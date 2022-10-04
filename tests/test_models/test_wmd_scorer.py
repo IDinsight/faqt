@@ -4,13 +4,13 @@ from pathlib import Path
 import numpy as np
 import pytest
 import yaml
-from faqt.model import StepwiseKeyedVectorsScorer
+from faqt.model import WMDScorer
 from faqt.preprocessing import preprocess_text_for_word_embedding
 
 pytestmark = pytest.mark.slow
 
 
-class TestStepwiseKeyedVectorScorer:
+class TestWMDScorer:
     """Create a model with just the bare bones"""
 
     sample_messages = [
@@ -31,33 +31,25 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture
     def basic_model(self, w2v_model):
-        faqt = StepwiseKeyedVectorsScorer(
+        faqt = WMDScorer(
             w2v_model,
             tokenizer=partial(
                 preprocess_text_for_word_embedding,
                 entities_dict={},
                 n_min_dashed_words_url=0,
             ),
-            tag_scoring_method="cs_nearest_k_percent_average",
-            tag_scoring_kwargs=dict(k=100, floor=1),
-            score_reduction_method="simple_mean",
-            score_reduction_kwargs=None,
         )
         return faqt
 
     @pytest.fixture
     def weighted_scoring_model(self, w2v_model):
-        faqt = StepwiseKeyedVectorsScorer(
+        faqt = WMDScorer(
             w2v_model,
             tokenizer=partial(
                 preprocess_text_for_word_embedding,
                 entities_dict={},
                 n_min_dashed_words_url=0,
             ),
-            tag_scoring_method="cs_nearest_k_percent_average",
-            tag_scoring_kwargs=dict(k=100, floor=1),
-            score_reduction_method="simple_mean",
-            score_reduction_kwargs=None,
             weighting_method="add_weight",
             weighting_kwargs={"N": 1.0},
         )
@@ -65,21 +57,26 @@ class TestStepwiseKeyedVectorScorer:
 
     @pytest.fixture
     def hunspell_model(self, w2v_model, hunspell):
-        faqt = StepwiseKeyedVectorsScorer(
+        faqt = WMDScorer(
             w2v_model,
             tokenizer=partial(
                 preprocess_text_for_word_embedding,
                 entities_dict={},
                 n_min_dashed_words_url=0,
             ),
-            tag_scoring_method="cs_nearest_k_percent_average",
-            tag_scoring_kwargs=dict(k=100, floor=1),
-            score_reduction_method="simple_mean",
-            score_reduction_kwargs=None,
             hunspell=hunspell,
             tags_guiding_typos=["music", "food"],
         )
         return faqt
+
+    @pytest.fixture(scope="class")
+    def contents(self):
+        full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
+        with open(full_path) as file:
+            yaml_dict = yaml.full_load(file)
+
+        tagsets_data = yaml_dict["tags_refresh_data"]
+        return [tagset_data["content_to_send"] for tagset_data in tagsets_data]
 
     @pytest.fixture(scope="class")
     def tagsets(self):
@@ -91,7 +88,7 @@ class TestStepwiseKeyedVectorScorer:
         return [tagset_data["tags"] for tagset_data in tagsets_data]
 
     @pytest.fixture(scope="class")
-    def tagset_weights(self):
+    def content_weights(self):
         full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
         with open(full_path) as file:
             yaml_dict = yaml.full_load(file)
@@ -105,16 +102,23 @@ class TestStepwiseKeyedVectorScorer:
         ):
             basic_model.score_contents("test message")
 
-    @pytest.mark.parametrize(
-        "input_text",
-        sample_messages,
-    )
-    def test_return_tag_scores_flag(self, basic_model, tagsets, input_text):
+    def test_setting_contents_with_list_of_list_of_str(self, basic_model, tagsets):
         basic_model.set_contents(tagsets)
-        result = basic_model.score_contents(input_text, return_tag_scores=True)
+        assert basic_model.contents is not None
 
-        assert "tag_scores" in result
-        assert len(result["overall_scores"]) == len(result["tag_scores"])
+    def test_setting_contents_with_list_of_str(self, basic_model, contents):
+        basic_model.set_contents(contents)
+        assert basic_model.contents is not None
+
+    def test_setting_contents_with_mixed_content_types_raises_error(
+        self, basic_model, tagsets
+    ):
+        mixed_type_contents = tagsets.copy()
+        mixed_type_contents[1] = " ".join(tagsets[1])
+        mixed_type_contents[2] = " ".join(tagsets[2])
+
+        with pytest.raises(TypeError):
+            basic_model.set_contents(mixed_type_contents)
 
     @pytest.mark.parametrize(
         "input_text",
@@ -127,9 +131,9 @@ class TestStepwiseKeyedVectorScorer:
         assert "spell_corrected" in result
 
     def test_resetting_contents_without_weights_is_allowed_with_warning(
-        self, weighted_scoring_model, tagsets, tagset_weights
+        self, weighted_scoring_model, tagsets, content_weights
     ):
-        weighted_scoring_model.set_contents(tagsets, weights=tagset_weights)
+        weighted_scoring_model.set_contents(tagsets, weights=content_weights)
         with pytest.raises(UserWarning):
             weighted_scoring_model.set_contents([], weights=None)
 
@@ -186,15 +190,15 @@ class TestStepwiseKeyedVectorScorer:
         sample_messages,
     )
     def test_basic_model_with_weights_returns_weighted_scores(
-        self, basic_model, weighted_scoring_model, tagsets, tagset_weights, input_text
+        self, basic_model, weighted_scoring_model, tagsets, content_weights, input_text
     ):
-        weights = np.asarray(tagset_weights) / np.sum(tagset_weights)
+        weights = np.asarray(content_weights) / np.sum(content_weights)
 
         basic_model.set_contents(tagsets, weights=None)
         unweighted_result = basic_model.score_contents(input_text)
         unweighted_scores = unweighted_result["overall_scores"]
 
-        weighted_scoring_model.set_contents(tagsets, weights=tagset_weights)
+        weighted_scoring_model.set_contents(tagsets, weights=content_weights)
         weighted_result = weighted_scoring_model.score_contents(input_text)
         weighted_scores = weighted_result["overall_scores"]
 
@@ -203,14 +207,14 @@ class TestStepwiseKeyedVectorScorer:
             assert w == (u + weights[i]) / 2
 
     def test_weights_correctly_calculated_with_weights(
-        self, weighted_scoring_model, tagsets, tagset_weights
+        self, weighted_scoring_model, tagsets, content_weights
     ):
-        weighted_scoring_model.set_contents(tagsets, weights=tagset_weights)
+        weighted_scoring_model.set_contents(tagsets, weights=content_weights)
 
         assert np.isclose(sum(weighted_scoring_model.content_weights), 1.0)
         assert np.allclose(
             np.asarray(weighted_scoring_model.content_weights),
-            np.asarray(tagset_weights) / sum(tagset_weights),
+            np.asarray(content_weights) / sum(content_weights),
         )
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
@@ -219,11 +223,11 @@ class TestStepwiseKeyedVectorScorer:
         basic_model,
         weighted_scoring_model,
         tagsets,
-        tagset_weights,
+        content_weights,
     ):
         input_text = "I love the outdoors. What should I pack for lunch?"
 
-        basic_model.set_contents(tagsets, weights=tagset_weights)
+        basic_model.set_contents(tagsets, weights=content_weights)
         unweighted_result = basic_model.score_contents(input_text)
         unweighted_scores = unweighted_result["overall_scores"]
         ranks_mean_plus_weight = np.argsort(unweighted_scores)
