@@ -13,6 +13,7 @@ class KeyedVectorsScorerBase(ABC):
     def __init__(
         self,
         word_embedding_model,
+        tokenizer=None,
         glossary=None,
         hunspell=None,
         tags_guiding_typos=None,
@@ -20,13 +21,20 @@ class KeyedVectorsScorerBase(ABC):
         weighting_kwargs=None,
     ):
         """
-        Allows setting reference tagsets and scoring new messages against it
+        Allows setting reference contents and scoring new messages against it
 
         Parameters
         ----------
         word_embedding_model: gensim.models.KeyedVectors
             Only google news word2vec binaries have been tested. Vectors must be
             pre-normalized. See Notes below.
+
+        tokenizer: Callable[[str], list[str]], optional
+            Tokenizer for input message and/or contents. May include
+            preprocessing steps. e.g.
+            `faqt.preprocessing.methods.preprocess_text_for_word_embedding`.
+            If None, strings are simply split by whitespaces (
+            i.e. `message.split()`).
 
         glossary: Dict[str, Dict[str, float]], optional
             Custom contextualization glossary. Words to replace are keys; their
@@ -73,12 +81,16 @@ class KeyedVectorsScorerBase(ABC):
 
         self.word_embedding_model = word_embedding_model
 
-        if glossary is None:
-            glossary = {}
+        glossary = glossary or {}
+        tags_guiding_typos = tags_guiding_typos or {}
 
-        if tags_guiding_typos is None:
-            tags_guiding_typos = {}
+        if tokenizer is None:
 
+            def tokenizer(text):
+                """Default simple tokenizer"""
+                return text.split()
+
+        self.tokenizer = tokenizer
         self.glossary = glossary.copy()
         self.hunspell = hunspell
         self.tags_guiding_typos = tags_guiding_typos.copy()
@@ -96,72 +108,16 @@ class KeyedVectorsScorerBase(ABC):
         self.weighting_method = weighting_method
         self.weighting_kwargs = weighting_kwargs
 
-        self.tagsets = None
-        self.tagset_wvs = None
-        self.tagset_weights = None
+        self.contents = None
+        self.content_vectors = None
+        self.content_weights = None
 
-    def set_contents(self, tagsets, weights=None):
-        """
-        Set the contents that messages should be matched against.
-
-        For this class, each message must be (represented by) a tagset,
-        which is a collection of words (tags) designated to match incoming
-        messages.
-
-        Parameters
-        ----------
-        tagsets: List[List[str]]
-            List of list-likes of tags
-            Tags are used to match incoming messages
-        weights: List[float] or None
-            Weight of each FAQ, will be scaled so that sum(weights) == 1.0.
-
-        Returns
-        -------
-        self
-        """
-        tagset_wvs = []
-        if len(tagsets) != 0:
-            for tag_set in tagsets:
-                tag2vector = {}
-                for tag in tag_set:
-                    word_vector = self.model_search_word(tag)
-                    if word_vector is None:
-                        warn(
-                            f"`{tag}` not found in vocab",
-                            RuntimeWarning,
-                        )
-                    else:
-                        tag2vector[tag] = word_vector
-                tagset_wvs.append(tag2vector)
-
-        if self.tagset_weights is not None and weights is None:
-            warn(
-                "You have previously set contents with `weights` that are "
-                "not None, but are now setting the weights to be None."
-            )
-
-        if weights is None and self.weighting_method is not None:
-            warn(
-                f"Weighting method is set to {self.weighting_method} but "
-                f"parameter `weights` was not provided. No weighting will be "
-                f"performed!"
-            )
-        elif weights is not None:
-            if self.weighting_method is None:
-                warn(
-                    "Weights were provided but `self.weighting_method` is "
-                    "None. No weighting will be performed!"
-                )
-
-            if not np.isclose(np.sum(weights), 1.0):
-                weights = weights / np.sum(weights)
-
-        self.tagsets = tagsets
-        self.tagset_wvs = tagset_wvs
-        self.tagset_weights = weights
-
-        return self
+    @abstractmethod
+    def set_contents(self, contents, weights=None):
+        """Sets content: preprocesses `contents` and `weights` as necessary
+        and saves them to `self.contents`, `self.content_weights` and
+        optionally saves word-vectors to `self.content_vectors`."""
+        raise NotImplemented
 
     def score_contents(self, message, return_spell_corrected=False, **kwargs):
         """
@@ -182,20 +138,23 @@ class KeyedVectorsScorerBase(ABC):
         Returns
         -------
         return_dict : dict
-            `return_dict["overall_scores"]` : Score for each tag-set in the
-            order stored in `self.tagsets`.
+            `return_dict["overall_scores"]` : Score for each content in the
+            order stored in `self.content`.
             `return_dict["spell_corrected"]` : List of spell-corrected
-            pre-processed tokens from `message`
+            pre-processed tokens from `message`,
+            if `return_spell_corrected==True`
+
             If this is called from a StepwiseKeyedVectorsScorer,
             `return_dict["tag_scores"]`: List of dictionaries of score assigned
-            to each tag in each tagset
+            to each tag in each content/tagset.
         """
         if not self.is_set:
             raise ValueError(
                 "Contents have not been set. Set contents with " "`self.set_contents()`"
             )
 
-        message_vectors, spell_corrected = self.model_search(message)
+        message_tokens = self.tokenizer(message)
+        message_vectors, spell_corrected = self.model_search(message_tokens)
 
         if len(message_vectors) == 0:
             result = {"overall_scores": []}
@@ -206,11 +165,11 @@ class KeyedVectorsScorerBase(ABC):
 
             return result
 
-        result = self._score_contents(message_vectors, **kwargs)
+        result = self._score_contents(message_vectors, spell_corrected, **kwargs)
 
-        if self.weighting_method is not None and self.tagset_weights is not None:
+        if self.weighting_method is not None and self.content_weights is not None:
             weighted_scores = self.weighting_method(
-                result["overall_scores"], self.tagset_weights, **self.weighting_kwargs
+                result["overall_scores"], self.content_weights, **self.weighting_kwargs
             )
             result["overall_scores"] = weighted_scores
 
@@ -220,14 +179,16 @@ class KeyedVectorsScorerBase(ABC):
         return result
 
     @abstractmethod
-    def _score_contents(self, message_vectors, **kwargs):
-        """Abstract method to do the scoring on message vectors, without
-        weighting. Must be implemented for each child class."""
-        pass
+    def _score_contents(self, message_vectors, spell_corrected, **kwargs):
+        """Abstract method to do the scoring on message vectors and/or spell
+        corrected words, without weighting. Must be implemented for each
+        child class."""
+        raise NotImplemented
 
     @property
     def is_set(self):
-        return self.tagsets is not None and self.tagset_wvs is not None
+        """Check if the contents have been set, i.e. ready for scoring"""
+        return self.contents is not None
 
     def model_search_word(self, word):
         """
@@ -251,119 +212,30 @@ class KeyedVectorsScorerBase(ABC):
             return_spellcorrected_text=True,
         )
 
-
-class KeyedVectorsScorer(KeyedVectorsScorerBase):
-    """Simple model"""
-
-    def __init__(
-        self,
-        word_embedding_model,
-        scoring_method,
-        scoring_kwargs=None,
-        weighting_method=None,
-        weighting_kwargs=None,
-        glossary=None,
-        hunspell=None,
-        tags_guiding_typos=None,
-    ):
-        """
-        Allows setting reference tagsets and scoring new messages against it
-
-        Parameters
-        ----------
-        word_embedding_model: gensim.models.KeyedVectors
-            Only google news word2vec binaries have been tested. Vectors must be
-            pre-normalized. See Notes below.
-
-        scoring_method: Callable
-            A function that takes two lists of word vectors (e.g. word
-            vectors of tokens in incoming tokens and word vectors of tags) and
-            returns a match score as a scalar float.
-
-        scoring_kwargs : dict, optional
-            Keyword arguments to pass through `scoring_method`
-
-        weighting_method : string or Callable, optional
-            If a string is passed, must be in
-            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
-            e.g. `add_weights`.
-
-            If a Callable is passed, it must be a function that takes in two
-            lists of floats (scores and weights) with optional
-            keyword-arguments and outputs a 1-D array of weighted scores.
-
-        weighting_kwargs : dict, optional
-            Keyword arguments to pass to `weighting_method`
-
-        glossary: Dict[str, Dict[str, float]], optional
-            Custom contextualization glossary. Words to replace are keys; their
-            values
-            must be dictionaries with (replacement words : weight) as key-value
-            pairs
-
-        hunspell: Hunspell, optional
-            Optional instance of the hunspell spell checker.
-
-        tags_guiding_typos: List[str], optional
-            Set of tag wvs to guide the correction of misspelled words.
-            For misspelled words, the best alternative spelling is that with
-            highest cosine
-            similarity to any of the wvs in tags_guiding_typos_wvs.
-
-            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
-            "child"
-            rather than "chills", even though both are same edit distance.
-
-            Optional parameter. If None (or None equivalent), we assume not no
-            guiding tags'
-
-        Notes
-        -----
-        * word embedding binary must contain prenormalized vectors. This is to
-          reduce operations needed when calculating distance. See script in
-          `faqt.scripts` to prenormalize your vectors.
-        * A tagsets is a collection of words (tags) designated to match incoming
-          messages
-        """
-        super(KeyedVectorsScorer, self).__init__(
-            word_embedding_model,
-            glossary,
-            hunspell,
-            tags_guiding_typos,
-            weighting_method,
-            weighting_kwargs,
-        )
-
-        self.scoring_method = scoring_method
-        self.scoring_kwargs = scoring_kwargs or {}
-
-    def _score_contents(self, message_vectors, **kwargs):
-        """
-        Scores each tagset against the given tokens
-        Parameters
-        ----------
-        message_vectors: List[List[float]]
-            List of word vectors of length > 0
-
-        Returns
-        -------
-        return_dict : dict
-            `return_dict["overall_scores"]` : Score for each tag-set in the
-            order stored in `self.tagsets`.
-        """
-
-        overall_scores = []
-
-        for tag_vectors in self.tagset_wvs:
-            overall_score = self.scoring_method(
-                message_vectors, tag_vectors.values(), **self.scoring_kwargs
+    def _check_weight_inputs(self, weights):
+        if self.content_weights is not None and weights is None:
+            warn(
+                "You have previously set contents with `weights` that are "
+                "not None, but are now setting the weights to be None."
             )
 
-            overall_scores.append(overall_score)
+        if weights is None and self.weighting_method is not None:
+            warn(
+                f"Weighting method is set to {self.weighting_method} but "
+                f"parameter `weights` was not provided. No weighting will be "
+                f"performed!"
+            )
+        elif weights is not None:
+            if self.weighting_method is None:
+                warn(
+                    "Weights were provided but `self.weighting_method` is "
+                    "None. No weighting will be performed!"
+                )
 
-        return_dict = {"overall_scores": overall_scores}
+            if not np.isclose(np.sum(weights), 1.0):
+                weights = weights / np.sum(weights)
 
-        return return_dict
+        return weights
 
 
 class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
@@ -478,32 +350,64 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
         self.score_reduction_method = score_reduction_method
         self.score_reduction_kwargs = score_reduction_kwargs or {}
 
-    def _score_contents(self, message_vectors, return_tag_scores=False):
+    def set_contents(self, contents, weights=None):
         """
+        Set the contents that messages should be matched against.
+
+        For this class, each content must be (represented by) a tagset,
+        which is a collection of words (tags) designated to match incoming
+        messages.
 
         Parameters
         ----------
-        message_vectors: List[List[float]]
-            pre-processed input tokens as a list of tokens.
-            See `faqt.preprocessing` for preprocessing functions
-        return_tag_scores : bool
-            If True, returns a list of dictionaries, where each dictionary
-            contains the scores for each tag.
+        contents: List[List[str]]
+            A list of pre-defined list-likes of tags.
+            Tags are used to match incoming messages
+        weights: List[float] or None
+            Weight of each FAQ, will be scaled so that sum(weights) == 1.0.
 
         Returns
         -------
-        return_dict : dict
-            `return_dict["overall_scores"]` : Score for each tag-set in the
-            order stored in `self.tagsets`.
-            `return_dict["tag_scores"]`: list of dictionaries of score assigned
-            to each tag in each tagset
+        self
+        """
+        tagset_wvs = []
 
+        if len(contents) != 0:
+            for tag_set in contents:
+                tag2vector = {}
+                for tag in tag_set:
+                    word_vector = self.model_search_word(tag)
+                    if word_vector is None:
+                        warn(
+                            f"`{tag}` not found in vocab",
+                            RuntimeWarning,
+                        )
+                    else:
+                        tag2vector[tag] = word_vector
+                tagset_wvs.append(tag2vector)
+
+        weights = self._check_weight_inputs(weights)
+
+        self.contents = contents
+        self.content_vectors = tagset_wvs
+        self.content_weights = weights
+
+        return self
+
+    def _score_contents(
+        self, message_vectors, spell_corrected_tokens=None, return_tag_scores=False
+    ):
+        """
+        Scores the message on contents in steps.
+            1. Score each (tag, message) pair
+            2. Reduce scores from 1 for each tagset, so we get a score for
+            each (tagset, message) pair.
         """
 
         overall_scores = []
         tag_scores = []
 
-        for tag2vector in self.tagset_wvs:
+        for tag2vector in self.content_vectors:
             tag_scores_per_tagset = {}
 
             for tag, vector in tag2vector.items():
@@ -525,6 +429,85 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
             return_dict["tag_scores"] = tag_scores
 
         return return_dict
+
+    @property
+    def is_set(self):
+        """Check if the contents have been set, i.e. ready for scoring.
+        Overrides base class' property since StepwiseKeyedVectorsScorer also
+        requires `self.content_vectors` to be not None."""
+        return self.contents is not None and self.content_vectors is not None
+
+
+class WMDScorer(KeyedVectorsScorerBase):
+    """WMD distance scoring model"""
+
+    def set_contents(self, contents, weights=None):
+        """
+        Set the contents that messages should be matched against.
+
+        For this class, each message must be (represented by) a tagset,
+        which is a collection of words (tags) designated to match incoming
+        messages.
+
+        Parameters
+        ----------
+        contents: List[str] or List[List[str]]
+            List of contents. Accepts a list of un-tokenized strings as well
+            as a list of tokens (list[list[str]])
+        weights: List[float] or None
+            Weight of each content, will be scaled so that sum(weights) == 1.0.
+
+        Returns
+        -------
+        self
+        """
+        preprocessed_content_tokens = []
+
+        if all(isinstance(x, str) for x in contents):
+            tokenize = True
+        elif all(isinstance(x, list) for x in contents) and all(
+            isinstance(y, str) for x in contents for y in x
+        ):
+            tokenize = False
+        else:
+            raise TypeError("`contents` must be of type List[str] or List[List[str]].")
+
+        for content in contents:
+            if tokenize:
+                tokens = self.tokenizer(content)
+            else:
+                tokens = content
+
+            _, tokens = self.model_search(tokens)
+            preprocessed_content_tokens.append(tokens)
+
+        weights = self._check_weight_inputs(weights)
+
+        self.contents = preprocessed_content_tokens
+        self.content_weights = weights
+
+        return self
+
+    def _score_contents(
+        self,
+        message_vectors,
+        spell_corrected_tokens,
+        return_spell_corrected=False,
+        **kwargs,
+    ):
+        """
+        Scores the message on each content using the word-mover's distance
+        implementation from gensim.
+        """
+        scores = []
+
+        for content in self.contents:
+            dist = self.word_embedding_model.wmdistance(spell_corrected_tokens, content)
+            scores.append(dist)
+
+        result = {"overall_scores": scores}
+
+        return result
 
 
 def model_search_word(
@@ -550,9 +533,10 @@ def model_search_word(
     ----------
     word : str
     model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
-    glossary : dict
+    glossary : dict, optional
         Custom contextualization glossary. Words to replace are keys; their values
-        must be dictionaries with (replacement words : weight) as key-value pairs
+        must be dictionaries with (replacement words : weight) as key-value
+        pairs. If None, no custom contextualization is performed.
     hunspell : Hunspell object
         Very expensive to load, so should use shared object
     tags_guiding_typos_wv : list
@@ -567,7 +551,7 @@ def model_search_word(
     return_spellcorrected_text : boolean
         If True, returns tuple (vector embedding, corrected spelling/case of word used)
     """
-    if word.lower() in glossary:
+    if glossary is not None and word.lower() in glossary:
         sum_vector = np.zeros(model["test"].shape)
         components = glossary[word.lower()]
 
@@ -629,7 +613,7 @@ def model_search_word(
 def model_search(
     tokens,
     model,
-    glossary,
+    glossary=None,
     hunspell=None,
     tags_guiding_typos_wv=None,
     return_spellcorrected_text=False,
@@ -641,7 +625,7 @@ def model_search(
 
     word : str
     model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
-    glossary : dict
+    glossary : dict or None
         Custom contextualization glossary. Words to replace are keys; their values
         must be dictionaries with (replacement words : weight) as key-value pairs
     hunspell : Hunspell object
