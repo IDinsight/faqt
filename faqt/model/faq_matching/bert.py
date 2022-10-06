@@ -31,7 +31,8 @@ class QuestionAnswerBERTScorer:
 
     @staticmethod
     def _create_safe_pipeline(tokenizer, classifier, batch_size):
-        """Workaround to ensure truncation during tokenization.
+        """Workaround to ensure truncation during tokenization because the
+        `.from_pretrained` method doesn't recover the truncation parameters.
         See https://stackoverflow.com/a/71243383/7664921, but we adapt the
         preprocess function for text_classification task"""
         pipe = pipeline(
@@ -64,7 +65,7 @@ class QuestionAnswerBERTScorer:
         """Check if contents are set"""
         return self.contents is not None
 
-    def set_contents(self, contents):
+    def set_contents(self, contents, weights=None):
         """
         Saves contents for this scorer
 
@@ -72,12 +73,20 @@ class QuestionAnswerBERTScorer:
         ----------
         contents : List-like[str]
             FAQ contents.
+        weights: List-like[float]
+            Weights for FAQ contents. Currently not used.
         """
+        if weights is not None:
+            raise UserWarning(
+                "QuestionAnswerBERTScorer does not support weights and "
+                "passing the `weights` parameter won't do anything."
+            )
+
         self.contents = list(contents)
 
         return self
 
-    def score_contents(self, message):
+    def score_contents(self, message, **kwargs):
         """
         Score message against each of the contents
 

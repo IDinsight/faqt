@@ -84,3 +84,7 @@ class TestQuestionAnswerBERTScorer:
         scores = bert_scorer.score_contents(really_long_message)
 
         assert len(scores["overall_scores"]) == len(contents)
+
+    def test_nonempty_weights_raises_warning(self, bert_scorer, contents):
+        with pytest.raises(UserWarning):
+            bert_scorer.set_contents(contents=contents, weights=[0.1] * len(contents))
