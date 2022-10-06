@@ -16,8 +16,8 @@ jobs:
           sudo apt-get install python3.8 jq -y
       - name: Install libraries
         run: |
-          pip install -r requirements.txt
           pip install -r requirements_dev.txt
+          pip install -r requirements.txt
           nltkdownload=`cat <<EOF
           import nltk
           nltk.download('stopwords')
