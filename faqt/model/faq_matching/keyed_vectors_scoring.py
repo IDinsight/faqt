@@ -5,6 +5,7 @@ import numpy as np
 from faqt.scoring.score_reduction import SCORE_REDUCTION_METHODS
 from faqt.scoring.score_weighting import SCORE_WEIGHTING_METHODS
 from faqt.scoring.tag_scoring import TAG_SCORING_METHODS
+from gensim.similarities import WmdSimilarity
 
 
 class KeyedVectorsScorerBase(ABC):
@@ -213,6 +214,9 @@ class KeyedVectorsScorerBase(ABC):
         )
 
     def _check_weight_inputs(self, weights):
+        """Raises warning if there are inconsistencies with the weighting
+        method parameter or how weights were previously set, if at all.
+        Returns normalized weights."""
         if self.content_weights is not None and weights is None:
             warn(
                 "You have previously set contents with `weights` that are "
@@ -442,6 +446,27 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
 class WMDScorer(KeyedVectorsScorerBase):
     """WMD distance scoring model"""
 
+    def __init__(
+        self,
+        word_embedding_model,
+        tokenizer=None,
+        weighting_method=None,
+        weighting_kwargs=None,
+        glossary=None,
+        hunspell=None,
+        tags_guiding_typos=None,
+    ):
+        super(WMDScorer, self).__init__(
+            word_embedding_model,
+            tokenizer=tokenizer,
+            weighting_method=weighting_method,
+            weighting_kwargs=weighting_kwargs,
+            glossary=glossary,
+            hunspell=hunspell,
+            tags_guiding_typos=tags_guiding_typos,
+        )
+        self.wmd_index = None
+
     def set_contents(self, contents, weights=None):
         """
         Set the contents that messages should be matched against.
@@ -482,12 +507,20 @@ class WMDScorer(KeyedVectorsScorerBase):
             _, tokens = self.model_search(tokens)
             preprocessed_content_tokens.append(tokens)
 
+        self.wmd_index = WmdSimilarity(
+            corpus=preprocessed_content_tokens, kv_model=self.word_embedding_model
+        )
         weights = self._check_weight_inputs(weights)
 
         self.contents = preprocessed_content_tokens
         self.content_weights = weights
 
         return self
+
+    @property
+    def is_set(self):
+        """Checks if contents are set. Overrides base class' property."""
+        return self.contents is not None and self.wmd_index is not None
 
     def _score_contents(
         self,
@@ -500,11 +533,8 @@ class WMDScorer(KeyedVectorsScorerBase):
         Scores the message on each content using the word-mover's distance
         implementation from gensim.
         """
-        scores = []
 
-        for content in self.contents:
-            dist = self.word_embedding_model.wmdistance(spell_corrected_tokens, content)
-            scores.append(dist)
+        scores = self.wmd_index[spell_corrected_tokens]
 
         result = {"overall_scores": scores}
 

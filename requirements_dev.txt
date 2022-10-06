@@ -1,3 +1,4 @@
+Cython==0.29.32
 black==20.8b1
 flake8==3.9.0
 isort==5.8.0

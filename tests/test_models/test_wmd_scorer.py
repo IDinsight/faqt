@@ -6,6 +6,7 @@ import pytest
 import yaml
 from faqt.model import WMDScorer
 from faqt.preprocessing import preprocess_text_for_word_embedding
+from gensim.similarities.docsim import WmdSimilarity
 
 pytestmark = pytest.mark.slow
 
@@ -146,7 +147,7 @@ class TestWMDScorer:
         basic_model.set_contents(tagsets, weights=None)
 
         assert basic_model.contents is not None
-        assert basic_model.content_vectors is not None
+        assert isinstance(basic_model.wmd_index, WmdSimilarity)
         assert basic_model.content_weights is None
 
     @pytest.mark.parametrize("input_text", sample_messages)
