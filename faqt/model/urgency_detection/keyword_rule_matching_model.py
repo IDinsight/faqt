@@ -77,10 +77,11 @@ def evaluate_keyword_rules(message, keyword_rules):
 
     Returns
     -------
-    evaluations : List[bool]
-        List of booleans of length `len(rules)`. `evaluations[i]` is
-        the evaluation of `rules[i]` on `tokens`
+    evaluations : List[float]
+        List of float of length `len(rules)`. `evaluations[i]` is
+        the evaluation of `rules[i]` on `tokens`, where 1.0 indicates True and 0.0 indicates False
     """
-    evaluated_rules = [evaluate_keyword_rule(message, rule) for rule in keyword_rules]
+    evaluations = [evaluate_keyword_rule(message, rule) for rule in keyword_rules]
+    scores = list(map(float, evaluations))
 
-    return evaluated_rules
+    return scores
