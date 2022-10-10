@@ -1,6 +1,7 @@
 from .model import (
     KeyedVectorsScorer,
     KeywordRule,
+    QuestionAnswerBERTScorer,
     StepwiseKeyedVectorsScorer,
     evaluate_keyword_rules,
 )

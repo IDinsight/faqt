@@ -1,6 +1,9 @@
+import os
+from pathlib import Path
+
 import pytest
-from tests.utils import load_wv_pretrained_bin
 from hunspell import Hunspell
+from tests.utils import load_wv_pretrained_bin
 
 
 @pytest.fixture(scope="session")

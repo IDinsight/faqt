@@ -39,8 +39,7 @@ def process_urls(text, n_min_dashed_words_url):
     Returns
     -------
     str
-        Text WhatsApp tokens, with URLs replaced with any relevant message
-        summaries
+        Text WhatsApp tokens, with URLs replaced with any relevant content summaries
 
     Example
     -------
