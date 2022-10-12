@@ -118,7 +118,7 @@ class KeyedVectorsScorerBase(ABC):
         """Sets content: preprocesses `contents` and `weights` as necessary
         and saves them to `self.contents`, `self.content_weights` and
         optionally saves word-vectors to `self.content_vectors`."""
-        raise NotImplemented
+        raise NotImplementedError
 
     def score_contents(self, message, return_spell_corrected=False, **kwargs):
         """
@@ -142,9 +142,7 @@ class KeyedVectorsScorerBase(ABC):
             `return_dict["overall_scores"]` : Score for each content in the
             order stored in `self.content`.
             `return_dict["spell_corrected"]` : List of spell-corrected
-            pre-processed tokens from `message`,
-            if `return_spell_corrected==True`
-
+            pre-processed tokens from `message`, if `return_spell_corrected==True`
             If this is called from a StepwiseKeyedVectorsScorer,
             `return_dict["tag_scores"]`: List of dictionaries of score assigned
             to each tag in each content/tagset.
@@ -184,7 +182,7 @@ class KeyedVectorsScorerBase(ABC):
         """Abstract method to do the scoring on message vectors and/or spell
         corrected words, without weighting. Must be implemented for each
         child class."""
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def is_set(self):
@@ -504,6 +502,8 @@ class WMDScorer(KeyedVectorsScorerBase):
             else:
                 tokens = content
 
+            # gensim's WMD drops tokens that aren't in the dictionary, so we want to
+            # make sure we can find the tokes in the model
             _, tokens = self.model_search(tokens)
             preprocessed_content_tokens.append(tokens)
 
