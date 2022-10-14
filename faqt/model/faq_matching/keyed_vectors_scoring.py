@@ -6,6 +6,7 @@ from faqt.scoring.score_reduction import SCORE_REDUCTION_METHODS
 from faqt.scoring.score_weighting import SCORE_WEIGHTING_METHODS
 from faqt.scoring.tag_scoring import TAG_SCORING_METHODS
 from gensim.similarities import WmdSimilarity
+from nltk.tokenize import word_tokenize
 
 
 class KeyedVectorsScorerBase(ABC):
@@ -31,11 +32,8 @@ class KeyedVectorsScorerBase(ABC):
             pre-normalized. See Notes below.
 
         tokenizer: Callable[[str], list[str]], optional
-            Tokenizer for input message and/or contents. May include
-            preprocessing steps. e.g.
-            `faqt.preprocessing.methods.preprocess_text_for_word_embedding`.
-            If None, strings are simply split by whitespaces (
-            i.e. `message.split()`).
+            Tokenizer for input message and/or contents. May include preprocessing
+            steps. If None, uses `nltk.tokenize.word_tokenize` from the `nltk` library.
 
         glossary: Dict[str, Dict[str, float]], optional
             Custom contextualization glossary. Words to replace are keys; their
@@ -86,10 +84,7 @@ class KeyedVectorsScorerBase(ABC):
         tags_guiding_typos = tags_guiding_typos or {}
 
         if tokenizer is None:
-
-            def tokenizer(text):
-                """Default simple tokenizer"""
-                return text.split()
+            tokenizer = word_tokenize
 
         self.tokenizer = tokenizer
         self.glossary = glossary.copy()
@@ -143,9 +138,7 @@ class KeyedVectorsScorerBase(ABC):
             order stored in `self.content`.
             `return_dict["spell_corrected"]` : List of spell-corrected
             pre-processed tokens from `message`, if `return_spell_corrected==True`
-            If this is called from a StepwiseKeyedVectorsScorer,
-            `return_dict["tag_scores"]`: List of dictionaries of score assigned
-            to each tag in each content/tagset.
+            Derived classes may return additional key-value pairs.
         """
         if not self.is_set:
             raise ValueError(
