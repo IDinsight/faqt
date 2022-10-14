@@ -374,6 +374,10 @@ class TestWMDScorer:
             wmd_basic_model.score_contents("test message")
 
     def test_setting_contents_with_list_of_list_of_str(self, wmd_basic_model, tagsets):
+        with pytest.raises(DeprecationWarning):
+            wmd_basic_model.set_contents(tagsets)
+
+    def test_setting_contents_with_list_of_list_of_str(self, wmd_basic_model, tagsets):
         wmd_basic_model.set_contents(tagsets)
         assert wmd_basic_model.contents is not None
 
@@ -391,7 +395,6 @@ class TestWMDScorer:
         with pytest.raises(TypeError):
             wmd_basic_model.set_contents(mixed_type_contents)
 
-    @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_setting_contents_without_weights_sets_all_tag_attr(
         self,
         wmd_basic_model,

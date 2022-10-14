@@ -477,7 +477,8 @@ class WMDScorer(KeyedVectorsScorerBase):
         ----------
         contents: List[str] or List[List[str]]
             List of contents. Accepts a list of un-tokenized strings as well
-            as a list of tokens (list[list[str]])
+            as a list of tokens (list[list[str]]) for backwards compatibility.
+            Support for list of list of tokens will be dropped in the future.
         weights: List[float] or None
             Weight of each content, will be scaled so that sum(weights) == 1.0.
 
@@ -492,6 +493,12 @@ class WMDScorer(KeyedVectorsScorerBase):
         elif all(isinstance(x, list) for x in contents) and all(
             isinstance(y, str) for x in contents for y in x
         ):
+            warn(
+                "Support for list[list[str]] is for backwards compatibility and will "
+                "be dropped in the future. Pass list[str] and FAQT will automatically "
+                "tokenize each item using `self.tokenizer`.",
+                DeprecationWarning,
+            )
             tokenize = False
         else:
             raise TypeError("`contents` must be of type List[str] or List[List[str]].")
