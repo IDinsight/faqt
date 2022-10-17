@@ -16,7 +16,7 @@ jobs:
           sudo apt-get install python3.8 jq -y
       - name: Install libraries
         run: |
-          pip install -r requirements.txt
+          cat requirements.txt | xargs -n 1 -L 1 pip install
           pip install -r requirements_dev.txt
           nltkdownload=`cat <<EOF
           import nltk

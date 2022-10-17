@@ -1,8 +1,8 @@
 from .model import (
-    KeyedVectorsScorer,
     KeywordRule,
     QuestionAnswerBERTScorer,
     StepwiseKeyedVectorsScorer,
+    WMDScorer,
     evaluate_keyword_rules,
 )
 from .preprocessing import (
