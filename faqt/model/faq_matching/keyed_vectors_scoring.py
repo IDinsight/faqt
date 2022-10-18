@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from warnings import warn
 
@@ -508,7 +509,9 @@ class WMDScorer(KeyedVectorsScorerBase):
             preprocessed_content_tokens.append(tokens)
 
         self.wmd_index = WmdSimilarity(
-            corpus=preprocessed_content_tokens, kv_model=self.word_embedding_model
+            corpus=preprocessed_content_tokens,
+            kv_model=self.word_embedding_model,
+            chunksize=np.ceil(len(contents) / os.cpu_count()).astype(int),
         )
         weights = self._check_weight_inputs(weights)
 
