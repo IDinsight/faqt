@@ -18,30 +18,9 @@ packages = ["faqt"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "faqt.__version__"}
-
-[project.optional-dependencies]
-bert = [
-    "transformers==4.17.0",
-    "torch==1.10.2"
-]
-hunspell = [
-    "cyhunspell==2.0.2"
-]
-dev = [
-    "black==22.6.0",
-    "flake8==3.9.0",
-    "isort==5.8.0",
-    "pre-commit>=2.11.1",
-    "pytest>=6.2.2",
-    "coverage>=6.3.2",
-    "cyhunspell==2.0.2",
-    "smart-open[s3]>=5.0.0",
-    "sphinx==4.5.0",
-    "sphinx-material==0.0.35",
-    "numpydoc==1.2",
-    "transformers==4.17.0",
-    "torch==1.10.2"
-]
+[tools.setuptools.dynamic.optional-dependencies]
+extended = {file = ["requirements_extended.txt"]}
+dev = {file = ["requirements_extended.txt", "requirements_dev.txt"]}
 
 [tool.isort]
 profile = "black"
