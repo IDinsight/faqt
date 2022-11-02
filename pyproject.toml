@@ -11,16 +11,14 @@ keywords = ["faq", "nlp"]
 authors = [
     {name = "IDinsight"}
 ]
-dynamic = ["version", "dependencies"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 
 [tool.setuptools]
 packages = ["faqt"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "faqt.__version__"}
-[tools.setuptools.dynamic.optional-dependencies]
-extended = {file = ["requirements_extended.txt"]}
-dev = {file = ["requirements_extended.txt", "requirements_dev.txt"]}
+optional-dependencies = { extended = { file = ["requirements_extended.txt"] }, dev = { file = ["requirements_extended.txt", "requirements_dev.txt"] } }
 
 [tool.isort]
 profile = "black"
