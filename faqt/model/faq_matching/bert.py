@@ -28,13 +28,13 @@ class QuestionAnswerBERTScorer:
 
         Raises
         ------
-        ImportError if transformers library is not installed. Install faqt using `pip install faqt[bert]` to install all dependencies for this class.
+        ImportError if transformers library is not installed. Install faqt using `pip install faqt[extended]` to install all dependencies for this class.
         """
         if not _has_bert_dependencies:
             raise ImportError(
-                f"Missing required dependencies from `requirements_bert.txt`. "
+                f"Missing required dependencies from `requirements_extended.txt`. "
                 f"To use {self.__class__.__name__}, install faqt using `pip install faqt["
-                f"bert]`."
+                f"extended]`."
             )
 
         tokenizer = AutoTokenizer.from_pretrained(model_path)

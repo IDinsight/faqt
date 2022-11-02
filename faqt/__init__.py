@@ -1,4 +1,4 @@
-__version__ = "1.0.2-rc"
+__version__ = "1.0.2"
 
 from .model import (
     KeywordRule,
