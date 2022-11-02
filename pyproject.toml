@@ -13,8 +13,9 @@ authors = [
 ]
 dynamic = ["version", "dependencies", "optional-dependencies"]
 
-[tool.setuptools]
-packages = ["faqt"]
+[tool.setuptools.packages.find]
+include = ["faqt*"]
+exclude = ["tests*"]
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
 version = {attr = "faqt.__version__"}
