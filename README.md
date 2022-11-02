@@ -20,10 +20,6 @@ FAQT will return similarity scores for the message against each set of tags:
 
 ## Installation
 
-Install Cython. Some of FAQT's dependencies require Cython to build.
-```bash
-pip install Cython>=0.29.32
-```
 Install FAQT. Eventually `FAQT` will be open-source an available from pypi. In the meantime, you can use `pip` to install it from github:
 ```bash
 pip install git+https://@github.com/IDinsight/faqt.git@main

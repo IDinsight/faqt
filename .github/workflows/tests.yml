@@ -18,7 +18,6 @@ jobs:
           sudo apt-get install python3.8 jq -y
       - name: Install libraries
         run: |
-          pip install Cython>=0.29.32
           pip install '.[dev]'
           nltkdownload=`cat <<EOF
           import nltk
