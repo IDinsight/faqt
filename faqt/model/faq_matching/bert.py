@@ -28,7 +28,8 @@ class QuestionAnswerBERTScorer:
 
         Raises
         ------
-        ImportError if transformers library is not installed. Install faqt using `pip install faqt[extended]` to install all dependencies for this class.
+        ImportError if transformers library is not installed. Install faqt using
+        `pip install faqt[extended]` to install all dependencies for this class.
         """
         if not _has_bert_dependencies:
             raise ImportError(
