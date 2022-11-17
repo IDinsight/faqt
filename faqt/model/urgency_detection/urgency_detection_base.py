@@ -63,10 +63,7 @@ def evaluate_keyword_rule(message, rule):
 
 
 class UrgencyDetectionBase(ABC):
-    """Base class for Urgency detection  models
-    Whether ML based or not.
-
-    """
+    """Base class for Urgency detection  models. Whether ML based or not."""
 
     def __init__(self, model, preprocessor):
         """
@@ -74,25 +71,22 @@ class UrgencyDetectionBase(ABC):
 
         Parameters
         -----------
-        model : Model to use for predictions. Can either be any
-        sklearn based model or a list of KeywordRule object
+                model :  sklearn.models.Pipeline or faqt.model.urgency_detection.KeywordRule
+                 Model to use for predictions.
+                preprocessor:function
+                function to preprocess the message
         """
         self.preprocess = preprocessor
         self.model = model
 
     @abstractmethod
     def predict(self, messages):
-        """
-        make prediction on the text
-         Parameters
-        """
+        """make prediction on the text"""
         raise NotImplementedError
 
     @abstractmethod
     def is_set(self):
-        """
-        Check if the model is set.
-        """
+        """Check if the model is set."""
         raise NotImplementedError
 
 
@@ -109,27 +103,23 @@ class RuleBasedUD(UrgencyDetectionBase):
     def predict(self, message):
         """
         return  final urgency score.
-         Parameters
+        Parameters
         ----------
-        message : str or List[str]
+        message : str
             A string or a list of pre-processed tokens to evaluate keyword
                 rules on.
         -------
-        evaluations : List[float]
-            List of float of length `len(rules)`. `evaluations[i]` is
-            the evaluation of `rules[i]` on `tokens`, where 1.0 indicates True and 0.0 indicates False
-          Returns
+        Returns
         -------
-        float: Urgency_score
+        float: urgency_score
 
 
         """
 
-        scores = self.predict(message)
-        if any(scores):
-            urgency_score = 1.0
-        else:
-            urgency_score = 0.0
+        scores = self.predict_scores(message)
+
+        urgency_score = float(any(scores))
+
         return urgency_score
 
     def predict_scores(self, message):
@@ -140,11 +130,7 @@ class RuleBasedUD(UrgencyDetectionBase):
         message : str or List[str]
             A string or a list of pre-processed tokens to evaluate keyword
                 rules on.
-        -------
-        evaluations : List[float]
-            List of float of length `len(rules)`. `evaluations[i]` is
-            the evaluation of `rules[i]` on `tokens`, where 1.0 indicates True and 0.0 indicates False
-          Returns
+        Returns
         -------
         List[float]: Urgency score for each rule in rules list
 
