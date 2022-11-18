@@ -71,10 +71,10 @@ class UrgencyDetectionBase(ABC):
 
         Parameters
         -----------
-                model :  sklearn.models.Pipeline or faqt.model.urgency_detection.KeywordRule
-                 Model to use for predictions.
-                preprocessor:function
-                function to preprocess the message
+        model : sklearn.models.Pipeline or faqt.model.urgency_detection.KeywordRule
+            Model to use for predictions.
+        preprocessor : function
+            Function to preprocess the message
         """
         self.preprocess = preprocessor
         self.model = model
@@ -129,7 +129,7 @@ class RuleBasedUD(UrgencyDetectionBase):
         ----------
         message : str or List[str]
             A string or a list of pre-processed tokens to evaluate keyword
-                rules on.
+            rules on.
         Returns
         -------
         List[float]: Urgency score for each rule in rules list
