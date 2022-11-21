@@ -124,7 +124,8 @@ class RuleBasedUD(UrgencyDetectionBase):
     def predict_scores(self, message):
         """
         Get urgency score for each keyworld rule
-         Parameters
+
+        Parameters
         ----------
         message : str or List[str]
             A string or a list of pre-processed tokens to evaluate keyword
