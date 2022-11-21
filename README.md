@@ -16,12 +16,11 @@ scoring. It outputs the match score for each of the content.
 ![FAQT match scoring
 diagram](docs/readme/images/faqt_readme-how_it_works-faq_matching.drawio.png)
 
-For Scorers that use word embeddings, scoring is based on the distances between
-words or sets of words from the message and the contents. 
-
-For the BERT-based Scorer, it
-accepts a BERT model with a final binary classification layer, which classifies (scores)
-the pair, e.g. user message and each of the FAQs, as relevant (1.0) or not (0.0).
+* For Scorers that use word embeddings, scoring is based on the distances between
+  words or sets of words from the message and the contents.
+* For the BERT-based Scorer, it accepts a BERT model with a final binary classification
+  layer, which classifies (scores) the pair, e.g. user message and each of the FAQs, as
+  relevant (1.0) or not (0.0).
 ### Urgency detection
 
 Currently, FAQT provides two models for urgency detection: rule-based and
@@ -31,7 +30,9 @@ outputs the urgency score (between 0.0 and 1.0) or an urgency label (0.0 for not
 
 ![FAQT urgency detection diagram](docs/readme/images/faqt_readme-how_it_works-urgency_detection.drawio.png)
 
-The ML-based Urgency Detector expects a scikit-learn-like pipeline that accepts raw text
+* The rule-based Urgency Detector expects a list of keyword rules, and evaluates urgency
+  based on the presence or absence of the keywords.
+* The ML-based Urgency Detector expects a scikit-learn-like pipeline that accepts raw text
 and outputs an urgency score between 0.0 and 1.0. Hence, this pipeline should include
 all necessary steps like tokenization and vectorization.
 # Installation
@@ -93,15 +94,57 @@ word vectors of the content.
     ```
 
 ## Urgency Detection
-We show an example that uses a scikit-learn Pipeline classifier.
+We show an example that uses the `RuleBasedUD`.
 
-*TODO: add example code*
+1. Define a preprocessor. Since the rule-based model simply looks for the presence and
+   absence of the tokens, you should apply the same preprocessing to the keywords as you
+   would to the messages. In this example, we will use `nltk`'s tokenizer and stemmer.
+    ```python
+    from nltk.tokenize import word_tokenize
+    from nltk.stem.porter import PorterStemmer
 
+    def preprocess(text):
+        stemmer = PorterStemmer()
+
+        tokens = word_tokenize(text)
+        stemmed_tokens = [stemmer.stem(token) for token in tokens]
+
+        return stemmed_tokens
+    ```
+
+2. Define `KeywordRule`'s, each describing an urgent case.
+    ```python
+    from faqt.models import KeywordRule
+
+    rules = [
+        KeywordRule(
+            include=[preprocess(word) for word in ["blurry", "vision", "headache"]]
+        ),
+        KeywordRule(
+            include=[preprocess(word) for word in ["vomit", "headache"]]
+        )
+    ]
+    ```
+
+2. Create a rule-based urgency detector
+    ```python
+    from faqt.model import RuleBasedUD
+
+    ud_model = RuleBasedUD(model=rules, preprocessor=preprocess)
+    ```
+
+3. "Predict" or evaluate!
+    ```python
+    ud_model.predict(
+        "I keep getting headaches and my vision is blurry. Is this normal?"
+    )
+    ```
+    This should return the value 1.0.
 
 # Development
 
-To develop FAQT, clone this repository and, at the
-repository root, run
+To develop FAQT, clone this repository and run the following at the repository root:
 ```bash
 pip install -e '.[dev]'
 ```
+This installs all the additional dependencies required for development.
