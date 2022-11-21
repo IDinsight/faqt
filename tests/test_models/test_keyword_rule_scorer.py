@@ -1,10 +1,10 @@
 from functools import partial
 
 import pytest
-from faqt.model.urgency_detection.keyword_rule_matching_model import (
+from faqt.model.urgency_detection.urgency_detection_base import (
     KeywordRule,
     evaluate_keyword_rule,
-    evaluate_keyword_rules,
+    RuleBasedUD,
 )
 from faqt.preprocessing import preprocess_text_for_keyword_rule
 from hunspell import Hunspell
@@ -139,8 +139,8 @@ class TestKeywordRuleEvaluation:
     def test_evaluate_rules_true_for_only_one_rule(
         self, preprocess_func, keyword_rules, rule_id, message, expected
     ):
-        msg = preprocess_func(message)
-        vals = evaluate_keyword_rules(msg, keyword_rules)
+        keyword_model = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
+        vals = keyword_model.predict_scores(message)
         assert vals[rule_id] == expected
 
     @pytest.mark.parametrize(
@@ -153,6 +153,6 @@ class TestKeywordRuleEvaluation:
     def test_evaluate_rules_all_false_for_excluded_kw_and_no_included_kw(
         self, preprocess_func, keyword_rules, message
     ):
-        msg = preprocess_func(message)
-        vals = evaluate_keyword_rules(msg, keyword_rules)
+        keyword_model = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
+        vals = keyword_model.predict_scores(message)
         assert all(result == 0.0 for result in vals)
