@@ -108,7 +108,6 @@ class RuleBasedUD(UrgencyDetectionBase):
         message : str
             A string or a list of pre-processed tokens to evaluate keyword
                 rules on.
-        -------
         Returns
         -------
         float: urgency_score
