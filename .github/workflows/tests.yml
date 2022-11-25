@@ -38,7 +38,7 @@ jobs:
         name: Download Urgency Detection ML model
         with:
           command: cp
-          source: s3://${{ secrets.VALIDATION_BUCKET }}/model_test.joblib
+          source: s3://${{ secrets.WORD2VEC_BINARY_BUCKET }}/model_test.joblib
           destination: ./tests/data/ud_ml_models/model_test.joblib
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
