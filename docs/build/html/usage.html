@@ -47,7 +47,7 @@
   
   
   
-    <title>Usage &#8212; FAQT 0.0.1 documentation</title>
+    <title>Usage &#8212; faqt 1.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/material.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -56,7 +56,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="API" href="api.html" />
+    <link rel="next" title="Api" href="modules.html" />
     <link rel="prev" title="Welcome to FAQT’s documentation!" href="index.html" />
   
    
@@ -81,7 +81,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex navheader">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="index.html" title="FAQT 0.0.1 documentation"
+        <a href="index.html" title="faqt 1.0.0 documentation"
            class="md-header-nav__button md-logo">
           
             &nbsp;
@@ -93,7 +93,7 @@
       </div>
       <div class="md-flex__cell md-flex__cell--stretch">
         <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
-          <span class="md-header-nav__topic">FAQT 0.0.1 documentation</span>
+          <span class="md-header-nav__topic">faqt 1.0.0 documentation</span>
           <span class="md-header-nav__topic"> Usage </span>
         </div>
       </div>
@@ -150,7 +150,7 @@
   <nav class="md-tabs" data-md-component="tabs">
     <div class="md-tabs__inner md-grid">
       <ul class="md-tabs__list">
-          <li class="md-tabs__item"><a href="index.html" class="md-tabs__link">FAQT 0.0.1 documentation</a></li>
+          <li class="md-tabs__item"><a href="index.html" class="md-tabs__link">faqt 1.0.0 documentation</a></li>
       </ul>
     </div>
   </nav>
@@ -162,13 +162,13 @@
               <div class="md-sidebar__inner">
                 <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="index.html" title="FAQT 0.0.1 documentation" class="md-nav__button md-logo">
+    <a href="index.html" title="faqt 1.0.0 documentation" class="md-nav__button md-logo">
       
         <img src="_static/" alt=" logo" width="48" height="48">
       
     </a>
     <a href="index.html"
-       title="FAQT 0.0.1 documentation">FAQT 0.0.1 documentation</a>
+       title="faqt 1.0.0 documentation">faqt 1.0.0 documentation</a>
   </label>
   
 
@@ -228,7 +228,7 @@
 <p><em>FAQT</em> has three components:</p>
 <ol class="arabic simple">
 <li><p><code class="code docutils literal notranslate"><span class="pre">faqt.preprocessing</span></code> - contains functions to preprocess free text and convert them to tokens before sending it to the model</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">faqt.model</span></code> - contains classes to “fit” tags and “score” messages</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">faqt.model</span></code> - contains classes with functions to load or update sets of tags, and score messages against the sets of tags.</p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">faqt.scoring_functions</span></code> - contains functions that take a set of tokens from a message and a set of tags and return a similarity score.</p></li>
 </ol>
 <p>Here’s a basic example that uses all three</p>
@@ -253,8 +253,8 @@
             <span class="n">floor</span><span class="o">=</span><span class="mi">1</span>
         <span class="p">)</span>
 
-<span class="c1">## Fit model</span>
-<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
+<span class="c1">## Set the FAQs (sets of tags) for this model</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_tags</span><span class="p">(</span><span class="n">tags</span><span class="p">)</span>
 
 <span class="c1">## Preprocess message</span>
 <span class="n">message_tokens</span> <span class="o">=</span> <span class="n">preprocess_text</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="p">{},</span> <span class="mi">10</span><span class="p">)</span>
@@ -290,12 +290,12 @@
             </a>
           
           
-            <a href="api.html" title="API"
+            <a href="modules.html" title="Api"
                class="md-flex md-footer-nav__link md-footer-nav__link--next"
                rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title"><span
                 class="md-flex__ellipsis"> <span
-                class="md-footer-nav__direction"> Next </span> API </span>
+                class="md-footer-nav__direction"> Next </span> Api </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink"><i
                 class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
@@ -309,7 +309,7 @@
       <div class="md-footer-meta__inner md-grid">
         <div class="md-footer-copyright">
           <div class="md-footer-copyright__highlight">
-              &#169; Copyright 2022, IDinsight.
+              &#169; Copyright 2022, Id.
               
           </div>
             Created using

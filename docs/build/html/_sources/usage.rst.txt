@@ -24,7 +24,7 @@ Basic Usage
 :emphasis:`FAQT` has three components:
 
 1. :code:`faqt.preprocessing` - contains functions to preprocess free text and convert them to tokens before sending it to the model
-2. :code:`faqt.model` - contains classes to "fit" tags and "score" messages
+2. :code:`faqt.model` - contains classes with functions to load or update sets of tags, and score messages against the sets of tags.
 3. :code:`faqt.scoring_functions` - contains functions that take a set of tokens from a message and a set of tags and return a similarity score.
 
 Here's a basic example that uses all three
@@ -53,8 +53,8 @@ Here's a basic example that uses all three
                 floor=1
             )
             
-    ## Fit model
-    model.fit(tags)
+    ## Set the FAQs (sets of tags) for this model
+    model.set_tags(tags)
 
     ## Preprocess message
     message_tokens = preprocess_text(message, {}, 10)

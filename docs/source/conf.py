@@ -13,17 +13,17 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../../faqt"))
+sys.path.insert(0, os.path.abspath("."))
 
 
 # -- Project information -----------------------------------------------------
 
-project = "FAQT"
-copyright = "2022, IDinsight"
-author = "IDinsight"
+project = "faqt"
+copyright = "2022, Id"
+author = "Id"
 
 # The full version, including alpha/beta/rc tags
-release = "0.0.1"
+release = "1.0.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -33,12 +33,12 @@ release = "0.0.1"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
     "sphinx.ext.autosummary",
     "sphinx.ext.doctest",
-    "numpydoc",
 ]
-
-autosummary_generate = True
+autodoc_default_options = {"autosummary": True}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

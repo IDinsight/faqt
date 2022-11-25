@@ -5,17 +5,17 @@
 
 Welcome to FAQT's documentation!
 ================================
-**FAQT** is a Python library to match text to a set a tags.
+**FAQT** is a Python library to match text to a set of keywords.
 
 How it works
 ------------
-Say you have 3 set of tags:
+Say you have 3 sets of keyword or tags, each representing some predefined content or a topic:
 
 * 1: {"river", "lake", "mountains"}
 * 2: {"movie", "dinner", "walk"}
 * 3: {"aircraft", "terminal", "boarding"}
 
-And you want to score a message "i went camping in the woods last weekend".
+And you want to see how well the messages "i went camping in the woods last weekend" matches the tags.
 
 FAQT will return similarity scores for the message against each set of tags:
 :code:`{1: 0.7, 2: 0.3, 3: 0.4}`.
@@ -25,21 +25,21 @@ Check out the :doc:`usage` section for further information.
 .. note::
    This project is under active development and API may change substantially.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
 
 
 Contents
 --------
 .. toctree::
-    usage
-    api
+   usage
+   modules 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
+
+
+
+
 

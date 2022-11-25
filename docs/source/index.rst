@@ -25,21 +25,21 @@ Check out the :doc:`usage` section for further information.
 .. note::
    This project is under active development and API may change substantially.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
 
 Contents
 --------
 .. toctree::
-    usage
-    preprocessing
-    api
+   usage
+   modules 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
+
+
+
+
 

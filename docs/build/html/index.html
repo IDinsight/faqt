@@ -47,7 +47,7 @@
   
   
   
-    <title>Welcome to FAQT’s documentation! &#8212; FAQT 0.0.1 documentation</title>
+    <title>Welcome to FAQT’s documentation! &#8212; faqt 1.0.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/material.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -80,7 +80,7 @@
   <nav class="md-header-nav md-grid">
     <div class="md-flex navheader">
       <div class="md-flex__cell md-flex__cell--shrink">
-        <a href="#" title="FAQT 0.0.1 documentation"
+        <a href="#" title="faqt 1.0.0 documentation"
            class="md-header-nav__button md-logo">
           
             &nbsp;
@@ -92,7 +92,7 @@
       </div>
       <div class="md-flex__cell md-flex__cell--stretch">
         <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
-          <span class="md-header-nav__topic">FAQT 0.0.1 documentation</span>
+          <span class="md-header-nav__topic">faqt 1.0.0 documentation</span>
           <span class="md-header-nav__topic"> Welcome to FAQT’s documentation! </span>
         </div>
       </div>
@@ -149,7 +149,7 @@
   <nav class="md-tabs" data-md-component="tabs">
     <div class="md-tabs__inner md-grid">
       <ul class="md-tabs__list">
-          <li class="md-tabs__item"><a href="#" class="md-tabs__link">FAQT 0.0.1 documentation</a></li>
+          <li class="md-tabs__item"><a href="#" class="md-tabs__link">faqt 1.0.0 documentation</a></li>
       </ul>
     </div>
   </nav>
@@ -161,13 +161,13 @@
               <div class="md-sidebar__inner">
                 <nav class="md-nav md-nav--primary" data-md-level="0">
   <label class="md-nav__title md-nav__title--site" for="__drawer">
-    <a href="#" title="FAQT 0.0.1 documentation" class="md-nav__button md-logo">
+    <a href="#" title="faqt 1.0.0 documentation" class="md-nav__button md-logo">
       
         <img src="_static/" alt=" logo" width="48" height="48">
       
     </a>
     <a href="#"
-       title="FAQT 0.0.1 documentation">FAQT 0.0.1 documentation</a>
+       title="faqt 1.0.0 documentation">faqt 1.0.0 documentation</a>
   </label>
   
 
@@ -208,24 +208,22 @@
             
   <section id="welcome-to-faqt-s-documentation">
 <h1 id="index--page-root">Welcome to FAQT’s documentation!<a class="headerlink" href="#index--page-root" title="Permalink to this headline">¶</a></h1>
-<p><strong>FAQT</strong> is a Python library to match text to a set a tags.</p>
+<p><strong>FAQT</strong> is a Python library to match text to a set of keywords.</p>
 <section id="how-it-works">
 <h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permalink to this headline">¶</a></h2>
-<p>Say you have 3 set of tags:</p>
+<p>Say you have 3 sets of keyword or tags, each representing some predefined content or a topic:</p>
 <ul class="simple">
 <li><p>1: {“river”, “lake”, “mountains”}</p></li>
 <li><p>2: {“movie”, “dinner”, “walk”}</p></li>
 <li><p>3: {“aircraft”, “terminal”, “boarding”}</p></li>
 </ul>
-<p>And you want to score a message “i went camping in the woods last weekend”.</p>
+<p>And you want to see how well the messages “i went camping in the woods last weekend” matches the tags.</p>
 <p>FAQT will return similarity scores for the message against each set of tags:
 <code class="code docutils literal notranslate"><span class="pre">{1:</span> <span class="pre">0.7,</span> <span class="pre">2:</span> <span class="pre">0.3,</span> <span class="pre">3:</span> <span class="pre">0.4}</span></code>.</p>
 <p>Check out the <a class="reference internal" href="usage.html"><span class="doc">Usage</span></a> section for further information.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This project is under active development and API may change substantially.</p>
-</div>
-<div class="toctree-wrapper compound">
 </div>
 </section>
 <section id="contents">
@@ -240,17 +238,40 @@
 <li class="toctree-l2"><a class="reference internal" href="usage.html#basic-usage">Basic Usage</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="generated/faqt.utils.html">faqt.utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/faqt.scoring_functions.html">faqt.scoring_functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="generated/faqt.preprocessing.html">faqt.preprocessing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/faqt.preprocessing.text_processing.html">faqt.preprocessing.text_processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Api</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faqt.model.html">faqt.model package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faqt.model.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="faqt.model.faq_matching.html">faqt.model.faq_matching package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.faq_matching.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.faq_matching.html#module-faqt.model.faq_matching.bert">faqt.model.faq_matching.bert module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.faq_matching.html#module-faqt.model.faq_matching.keyed_vectors_scoring">faqt.model.faq_matching.keyed_vectors_scoring module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.faq_matching.html#module-faqt.model.faq_matching">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="generated/faqt.model.html">faqt.model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/faqt.model.embeddings.html">faqt.model.embeddings</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/faqt.model.models.html">faqt.model.models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/faqt.model.topic_models.html">faqt.model.topic_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="faqt.model.urgency_detection.html">faqt.model.urgency_detection package</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.urgency_detection.html#submodules">Submodules</a></li>
+<li class="toctree-l5"><a class="reference internal" href="faqt.model.urgency_detection.html#module-faqt.model.urgency_detection.urgency_detection_base">faqt.model.urgency_detection.urgency_detection_base module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.model.html#module-faqt.model">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faqt.preprocessing.html">faqt.preprocessing package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faqt.preprocessing.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.preprocessing.html#module-faqt.preprocessing.methods">faqt.preprocessing.methods module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.preprocessing.html#module-faqt.preprocessing.text">faqt.preprocessing.text module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.preprocessing.html#module-faqt.preprocessing.tokens">faqt.preprocessing.tokens module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.preprocessing.html#module-faqt.preprocessing">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="faqt.scoring.html">faqt.scoring package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="faqt.scoring.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.scoring.html#module-faqt.scoring.score_reduction">faqt.scoring.score_reduction module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.scoring.html#module-faqt.scoring.score_weighting">faqt.scoring.score_weighting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.scoring.html#module-faqt.scoring.tag_scoring">faqt.scoring.tag_scoring module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="faqt.scoring.html#module-faqt.scoring">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -297,7 +318,7 @@
       <div class="md-footer-meta__inner md-grid">
         <div class="md-footer-copyright">
           <div class="md-footer-copyright__highlight">
-              &#169; Copyright 2022, IDinsight.
+              &#169; Copyright 2022, Id.
               
           </div>
             Created using
