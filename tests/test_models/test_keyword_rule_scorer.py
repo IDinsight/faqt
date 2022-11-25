@@ -1,10 +1,12 @@
 from functools import partial
-
+from pathlib import Path
+import joblib
 import pytest
 from faqt.model.urgency_detection.urgency_detection_base import (
     KeywordRule,
     evaluate_keyword_rule,
     RuleBasedUD,
+    MLBasedUD,
 )
 from faqt.preprocessing import preprocess_text_for_keyword_rule
 from hunspell import Hunspell
@@ -109,6 +111,55 @@ class TestKeywordRuleEvaluation:
     def test_rule_true(self, preprocess_func, keyword_rules, rule_id, message):
         msg = preprocess_func(message)
         assert evaluate_keyword_rule(msg, keyword_rules[rule_id]) is True
+
+    def test_rules_and_preprocessing_set_correctly(
+        self, keyword_rules, preprocess_func
+    ):
+        predictor = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
+        assert (
+            predictor.model == keyword_rules
+            and predictor.preprocessor == preprocess_func
+        )
+
+    @pytest.mark.parametrize(
+        "rule_id, message",
+        [
+            (
+                0,
+                "I have a headache, feel dizzy, and everything looks blurry",
+            ),
+            # True because it contains all included keywords
+            (1, "My back pain is killing me :("),  # True, because it
+            # includes all included keywords and no excluded keyword
+            (2, "hi hi"),  # True, because it doesn't have excluded keyword
+        ],
+    )
+    def test_rule_based_ud_predict_score_return_array(
+        self, keyword_rules, preprocess_func, rule_id, message
+    ):
+        predictor = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
+        scores = predictor.predict_scores(message)
+        assert isinstance(scores, list) and len(scores) == len(keyword_rules)
+
+    @pytest.mark.parametrize(
+        "rule_id, message",
+        [
+            (
+                0,
+                "I have a headache, feel dizzy, and everything looks blurry",
+            ),
+            # True because it contains all included keywords
+            (1, "My back pain is killing me :("),  # True, because it
+            # includes all included keywords and no excluded keyword
+            (2, "hi hi"),  # True, because it doesn't have excluded keyword
+        ],
+    )
+    def test_rule_based_ud_predict_return_float(
+        self, keyword_rules, preprocess_func, rule_id, message
+    ):
+        predictor = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
+        scores = predictor.predict(message)
+        assert isinstance(scores, float)
 
     @pytest.mark.parametrize(
         "rule_id, message, expected",

@@ -76,7 +76,7 @@ class UrgencyDetectionBase(ABC):
         preprocessor : function
             Function to preprocess the message
         """
-        self.preprocess = preprocessor
+        self.preprocessor = preprocessor
         self.model = model
 
     @abstractmethod
@@ -94,6 +94,7 @@ class RuleBasedUD(UrgencyDetectionBase):
     """Rule-based  model"""
 
     def __init__(self, model, preprocessor):
+        """See interface docstring for details"""
         super(RuleBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
@@ -139,10 +140,66 @@ class RuleBasedUD(UrgencyDetectionBase):
 
         if not self.is_set():
             raise ValueError("Rules have not been added")
-        preprocessed_message = self.preprocess(message)
+        preprocessed_message = self.preprocessor(message)
         evaluations = [
             evaluate_keyword_rule(preprocessed_message, rule) for rule in self.model
         ]
         scores = list(map(float, evaluations))
 
         return scores
+
+
+class MLBasedUD(UrgencyDetectionBase):
+    """Machine Learning  based  model"""
+
+    def __init__(self, model, preprocessor):
+        """See interface docstring for details."""
+        super(MLBasedUD, self).__init__(model, preprocessor)
+
+    def is_set(self):
+        """
+        Checks if a scikit-learn estimator/transformer has already been fit.
+
+
+        Parameters
+        ----------
+        model: scikit-learn estimator (e.g. RandomForestClassifier)
+            or transformer (e.g. MinMaxScaler) object
+
+
+        Returns
+        -------
+        Boolean that indicates if ``model`` has already been fit (True) or not (False).
+        """
+
+        attrs = [
+            v for v in vars(self.model) if v.endswith("_") and not v.startswith("__")
+        ]
+
+        return len(attrs) != 0
+
+    def predict(self, message):
+        """
+        return  final urgency score.
+        Parameters
+        ----------
+        message : str
+            A string or a list of pre-processed tokens to classify as urgent or not.
+        Returns
+        -------
+        float: urgency_score
+
+        """
+
+        preprocessed_message = " ".join(self.preprocessor(message))
+        prediction = self.model.predict([preprocessed_message])
+        return float(prediction)
+
+    def get_model(self):
+        """
+            return prediction model
+        Returns
+        -------
+        sklearn.models.Pipeline: model
+        """
+        return self.model
