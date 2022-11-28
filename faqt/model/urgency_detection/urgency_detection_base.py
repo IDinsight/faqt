@@ -5,6 +5,7 @@ from typing import List
 
 @dataclass
 class KeywordRule:
+
     """Dataclass for keyword rule
 
     Parameters
@@ -53,8 +54,7 @@ def evaluate_keyword_rule(message, rule):
 
     Returns
     -------
-    bool
-
+    bool: Whether the text has been detected urgent or not
     """
     contains_all_includes = all(include in message for include in rule.include)
     contains_no_excludes = all(exclude not in message for exclude in rule.exclude)
@@ -103,17 +103,15 @@ class RuleBasedUD(UrgencyDetectionBase):
     def predict(self, message):
         """
         return  final urgency score.
+
         Parameters
         ----------
         message : str
             A string or a list of pre-processed tokens to evaluate keyword
                 rules on.
-        -------
         Returns
         -------
         float: urgency_score
-
-
         """
 
         scores = self.predict_scores(message)
@@ -124,15 +122,15 @@ class RuleBasedUD(UrgencyDetectionBase):
 
     def predict_scores(self, message):
         """
-        Get urgency score for each keyworld rule
-         Parameters
+        return  final urgency score.
+        Parameters
         ----------
-        message : str or List[str]
+        message : str
             A string or a list of pre-processed tokens to evaluate keyword
-            rules on.
+                rules on.
         Returns
         -------
-        List[float]: Urgency score for each rule in rules list
+        float: urgency_score
 
 
         """
