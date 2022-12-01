@@ -67,11 +67,11 @@ class UrgencyDetectionBase(ABC):
 
     def __init__(self, model, preprocessor):
         """
-        Setting model (whether it is rule based or not
+        Setting model (whether it is rule based or not)
 
         Parameters
         -----------
-        model : sklearn.models.Pipeline or faqt.model.urgency_detection.KeywordRule
+        model : sklearn.models.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
             Model to use for predictions.
         preprocessor : function
             Function to preprocess the message
@@ -94,7 +94,16 @@ class RuleBasedUD(UrgencyDetectionBase):
     """Rule-based  model"""
 
     def __init__(self, model, preprocessor):
-        """See interface docstring for details"""
+        """
+        Setting model (rule based models)
+
+        Parameters
+        -----------
+        model : List[faqt.model.urgency_detection.KeywordRule]
+            List of KeywordRule objects to use for predictions.
+        preprocessor : function
+            Function to preprocess the message
+        """
         super(RuleBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
@@ -153,7 +162,16 @@ class MLBasedUD(UrgencyDetectionBase):
     """Machine Learning  based  model"""
 
     def __init__(self, model, preprocessor):
-        """See interface docstring for details."""
+        """
+        Setting model (ML based models)
+
+        Parameters
+        -----------
+        model : sklearn.models.Pipeline
+            Machine Learning model to use for predictions.
+        preprocessor : function
+            Function to preprocess the message. The raw text will be preprocessed using that function
+        """
         super(MLBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
