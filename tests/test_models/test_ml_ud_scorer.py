@@ -34,7 +34,8 @@ class TestMLBasedUD:
 
     def test_model_and_preprocessing_set_correctly(self, ml_model, preprocess_func):
         predictor = MLBasedUD(model=ml_model, preprocessor=preprocess_func)
-        assert predictor.model == ml_model and predictor.preprocessor == preprocess_func
+        assert predictor.model == ml_model
+        assert predictor.preprocessor == preprocess_func
 
     def test_get_model_returns_model(self, ml_model, preprocess_func):
         predictor = MLBasedUD(model=ml_model, preprocessor=preprocess_func)
