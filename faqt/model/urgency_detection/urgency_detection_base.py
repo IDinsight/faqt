@@ -170,7 +170,7 @@ class MLBasedUD(UrgencyDetectionBase):
         model : sklearn.models.Pipeline
             Machine Learning model to use for predictions.
         preprocessor : function
-            Function to preprocess the message. The raw text will be preprocessed using that function
+            Function to preprocess the message. During prediction, the raw text will be preprocessed using this function, and then passed to the `model`'s predict function.
         """
         super(MLBasedUD, self).__init__(model, preprocessor)
 
