@@ -175,26 +175,7 @@ class MLBasedUD(UrgencyDetectionBase):
         super(MLBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
-        """
-        Checks if a scikit-learn estimator/transformer has already been fit.
-
-
-        Parameters
-        ----------
-        model: scikit-learn estimator (e.g. RandomForestClassifier)
-            or transformer (e.g. MinMaxScaler) object
-
-
-        Returns
-        -------
-        Boolean that indicates if ``model`` has already been fit (True) or not (False).
-        """
-
-        attrs = [
-            v for v in vars(self.model) if v.endswith("_") and not v.startswith("__")
-        ]
-
-        return len(attrs) != 0
+        pass
 
     def predict(self, message):
         """
