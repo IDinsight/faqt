@@ -139,7 +139,8 @@ class TestKeywordRuleEvaluation:
     ):
         predictor = RuleBasedUD(model=keyword_rules, preprocessor=preprocess_func)
         scores = predictor.predict_scores(message)
-        assert isinstance(scores, list) and len(scores) == len(keyword_rules)
+        assert isinstance(scores, list)
+        assert len(scores) == len(keyword_rules)
 
     @pytest.mark.parametrize(
         "rule_id, message",
