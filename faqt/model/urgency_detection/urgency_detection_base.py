@@ -71,7 +71,7 @@ class UrgencyDetectionBase(ABC):
 
         Parameters
         -----------
-        model : sklearn.models.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
+        model : sklearn.pipeline.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
             Model to use for predictions.
         preprocessor : function
             Function to preprocess the message
