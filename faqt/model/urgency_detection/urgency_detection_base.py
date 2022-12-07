@@ -84,11 +84,6 @@ class UrgencyDetectionBase(ABC):
         """make prediction on the text"""
         raise NotImplementedError
 
-    @abstractmethod
-    def is_set(self):
-        """Check if the model is set."""
-        raise NotImplementedError
-
 
 class RuleBasedUD(UrgencyDetectionBase):
     """Rule-based  model"""
@@ -173,9 +168,6 @@ class MLBasedUD(UrgencyDetectionBase):
             Function to preprocess the message. During prediction, the raw text will be preprocessed using this function, and then passed to the `model`'s predict function.
         """
         super(MLBasedUD, self).__init__(model, preprocessor)
-
-    def is_set(self):
-        pass
 
     def predict(self, message):
         """
