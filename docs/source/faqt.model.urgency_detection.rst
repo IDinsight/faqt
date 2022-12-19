@@ -1,10 +1,8 @@
-faqt.model.urgency\_detection package
+Urgency detection Api 
 =====================================
 
-Submodules
-----------
 
-faqt.model.urgency\_detection.urgency\_detection\_base module
+faqt.model.urgency\_detection.urgency\_detection\_base 
 -------------------------------------------------------------
 .. automodule:: faqt.model.urgency_detection.urgency_detection_base
 

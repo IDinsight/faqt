@@ -1,5 +1,5 @@
-Usage
-=====
+Faqt Api Usage
+==============
 
 Installation
 ------------

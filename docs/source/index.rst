@@ -3,6 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
+.. module:: faqt
 Welcome to FAQT's documentation!
 ================================
 **FAQT** is a Python library to match text to a set of keywords.
@@ -26,12 +28,22 @@ Check out the :doc:`usage` section for further information.
    This project is under active development and API may change substantially.
 
 
+Usage
+--------
+.. toctree::
+   :maxdepth: 4
+
+   usage
 
 Contents
 --------
 .. toctree::
-   usage
-   modules 
+   :maxdepth: 4
+
+   faqt.preprocessing 
+   faqt.model.faq_matching
+   faqt.scoring
+   faqt.model.urgency_detection
 
 Indices and tables
 ==================

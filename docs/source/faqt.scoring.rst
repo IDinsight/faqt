@@ -1,10 +1,7 @@
-faqt.scoring package
+Scoring api 
 ====================
 
-Submodules
-----------
-
-faqt.scoring.score\_reduction module
+faqt.scoring.score\_reduction
 ------------------------------------
 
 .. automodule:: faqt.scoring.score_reduction
@@ -12,7 +9,7 @@ faqt.scoring.score\_reduction module
    :undoc-members:
    :show-inheritance:
 
-faqt.scoring.score\_weighting module
+faqt.scoring.score\_weighting
 ------------------------------------
 
 .. automodule:: faqt.scoring.score_weighting
@@ -20,7 +17,7 @@ faqt.scoring.score\_weighting module
    :undoc-members:
    :show-inheritance:
 
-faqt.scoring.tag\_scoring module
+faqt.scoring.tag\_scoring
 --------------------------------
 
 .. automodule:: faqt.scoring.tag_scoring
