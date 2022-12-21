@@ -123,6 +123,7 @@ class RuleBasedUD(UrgencyDetectionBase):
     def predict_scores(self, message):
         """
         return  final urgency score.
+
         Parameters
         ----------
         message : str
@@ -131,8 +132,6 @@ class RuleBasedUD(UrgencyDetectionBase):
         Returns
         -------
         float: urgency_score
-
-
         """
 
         if not self.is_set():

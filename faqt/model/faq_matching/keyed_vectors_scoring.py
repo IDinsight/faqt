@@ -187,6 +187,7 @@ class KeyedVectorsScorerBase(ABC):
         """
         Wrapper around embeddings.model_search_word. Sets the model and
         glossary and object attributes
+
         """
         return model_search_word(word, self.word_embedding_model, self.glossary)
 
@@ -194,6 +195,7 @@ class KeyedVectorsScorerBase(ABC):
         """
         Wrapper around embeddings.model_search. Sets other arguments to object
         attributes
+
         """
 
         return model_search(
@@ -657,6 +659,8 @@ def model_search(
     `faqt.model.faq_matching.keyed_vector_scoring.model_search_word` for how
     exactly the tokens are searched in the model.
 
+    Parameters:
+    ------------
     word : str
     model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
     glossary : dict or None

@@ -100,7 +100,6 @@ class CustomHunspell(object):
         hunspell=None,
     ):
         """
-
         Parameters
         ----------
         custom_spell_check_list : List[str], optional
