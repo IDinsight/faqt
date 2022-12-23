@@ -2,7 +2,12 @@
 from copy import copy
 from itertools import chain, tee
 
-from hunspell import Hunspell
+try:
+    from hunspell import Hunspell
+except ImportError:
+    _has_hunspell = False
+else:
+    _has_hunspell = True
 from nltk.corpus import stopwords
 
 
@@ -111,9 +116,20 @@ class CustomHunspell(object):
             List of words to consider first in a list of suggested
             spell-corrected words, in order of preference.
         hunspell : hunspell.HunspellWrap, optional
-            Optional Hunspell instance
+            Optional Hunspell instance. If not provided, faqt creates a default
+            Hunspell instance. (Hence, hunspell must be installed)
+
+        Raises
+        ------
+        ImportError: if hunspell is not provided AND hunspell library is not installed.
         """
         if hunspell is None:
+            if not _has_hunspell:
+                raise ImportError(
+                    f"Could not import hunspell library. If a hunspell object isn't "
+                    f"passed, {self.__class__.__name__} requires hunspell library to instantiate a default Hunspell object."
+                )
+
             self._hunspell = Hunspell()
         else:
             self._hunspell = hunspell

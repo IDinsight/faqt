@@ -506,7 +506,7 @@ class WMDScorer(KeyedVectorsScorerBase):
                 tokens = content
 
             # gensim's WMD drops tokens that aren't in the dictionary, so we want to
-            # make sure we can find the tokes in the model
+            # make sure we can find the content tokens in the model
             _, tokens = self.model_search(tokens)
             preprocessed_content_tokens.append(tokens)
 

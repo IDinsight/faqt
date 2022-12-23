@@ -1,6 +1,11 @@
 import types
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+try:
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+except ImportError:
+    _has_bert_dependencies = False
+else:
+    _has_bert_dependencies = True
 
 
 class QuestionAnswerBERTScorer:
@@ -19,7 +24,20 @@ class QuestionAnswerBERTScorer:
             or `transformers.Model.save_pretrained()` function.
         batch_size : int, default=1
             Batch size for predictions
+
+
+        Raises
+        ------
+        ImportError if transformers library is not installed. Install faqt using
+        `pip install faqt[extended]` to install all dependencies for this class.
         """
+        if not _has_bert_dependencies:
+            raise ImportError(
+                f"Missing required dependencies from `requirements_extended.txt`. "
+                f"To use {self.__class__.__name__}, install faqt using `pip install faqt["
+                f"extended]`."
+            )
+
         tokenizer = AutoTokenizer.from_pretrained(model_path)
         classifier = AutoModelForSequenceClassification.from_pretrained(model_path)
 

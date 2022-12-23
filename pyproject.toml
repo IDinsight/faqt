@@ -1,3 +1,26 @@
+[build-system]
+requires = ["setuptools", "Cython>=0.29.32"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "faqt"
+description = "Add an NLP layer over your FAQs"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["faq", "nlp"]
+authors = [
+    {name = "IDinsight"}
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[tool.setuptools.packages.find]
+include = ["faqt*"]
+exclude = ["tests*"]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = {attr = "faqt.__version__"}
+optional-dependencies = { extended = { file = ["requirements_extended.txt"] }, dev = { file = ["requirements_extended.txt", "requirements_dev.txt"] } }
+
 [tool.isort]
 profile = "black"
 src_paths = ["src", "api_demo_apicall", "api_faq_db", "api_model"]

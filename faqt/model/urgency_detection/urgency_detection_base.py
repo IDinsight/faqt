@@ -5,7 +5,6 @@ from typing import List
 
 @dataclass
 class KeywordRule:
-
     """Dataclass for keyword rule
 
     Parameters
@@ -54,7 +53,8 @@ def evaluate_keyword_rule(message, rule):
 
     Returns
     -------
-    bool: Whether the text has been detected urgent or not
+    bool
+
     """
     contains_all_includes = all(include in message for include in rule.include)
     contains_no_excludes = all(exclude not in message for exclude in rule.exclude)
@@ -67,16 +67,16 @@ class UrgencyDetectionBase(ABC):
 
     def __init__(self, model, preprocessor):
         """
-        Setting model (whether it is rule based or not
+        Setting model (whether it is rule based or not)
 
         Parameters
         -----------
-        model : sklearn.models.Pipeline or faqt.model.urgency_detection.KeywordRule
+        model : sklearn.pipeline.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
             Model to use for predictions.
         preprocessor : function
             Function to preprocess the message
         """
-        self.preprocess = preprocessor
+        self.preprocessor = preprocessor
         self.model = model
 
     @abstractmethod
@@ -84,16 +84,21 @@ class UrgencyDetectionBase(ABC):
         """make prediction on the text"""
         raise NotImplementedError
 
-    @abstractmethod
-    def is_set(self):
-        """Check if the model is set."""
-        raise NotImplementedError
-
 
 class RuleBasedUD(UrgencyDetectionBase):
     """Rule-based  model"""
 
     def __init__(self, model, preprocessor):
+        """
+        Setting model (rule based models)
+
+        Parameters
+        -----------
+        model : List[faqt.model.urgency_detection.KeywordRule]
+            List of KeywordRule objects to use for predictions.
+        preprocessor : function
+            Function to preprocess the message
+        """
         super(RuleBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
@@ -103,7 +108,6 @@ class RuleBasedUD(UrgencyDetectionBase):
     def predict(self, message):
         """
         return  final urgency score.
-
         Parameters
         ----------
         message : str
@@ -112,6 +116,8 @@ class RuleBasedUD(UrgencyDetectionBase):
         Returns
         -------
         float: urgency_score
+
+
         """
 
         scores = self.predict_scores(message)
@@ -122,24 +128,69 @@ class RuleBasedUD(UrgencyDetectionBase):
 
     def predict_scores(self, message):
         """
-        return  final urgency score.
+        Get urgency score for each keyworld rule
 
         Parameters
         ----------
-        message : str
+        message : str or List[str]
             A string or a list of pre-processed tokens to evaluate keyword
-                rules on.
+            rules on.
         Returns
         -------
-        float: urgency_score
+        List[float]: Urgency score for each rule in rules list
+
+
         """
 
         if not self.is_set():
             raise ValueError("Rules have not been added")
-        preprocessed_message = self.preprocess(message)
+        preprocessed_message = self.preprocessor(message)
         evaluations = [
             evaluate_keyword_rule(preprocessed_message, rule) for rule in self.model
         ]
         scores = list(map(float, evaluations))
 
         return scores
+
+
+class MLBasedUD(UrgencyDetectionBase):
+    """Machine Learning  based  model"""
+
+    def __init__(self, model, preprocessor):
+        """
+        Setting model (ML based models)
+
+        Parameters
+        -----------
+        model : sklearn.models.Pipeline
+            Machine Learning model to use for predictions.
+        preprocessor : function
+            Function to preprocess the message. During prediction, the raw text will be preprocessed using this function, and then passed to the `model`'s predict function.
+        """
+        super(MLBasedUD, self).__init__(model, preprocessor)
+
+    def predict(self, message):
+        """
+        return  final urgency score.
+        Parameters
+        ----------
+        message : str
+            A string or a list of pre-processed tokens to classify as urgent or not.
+        Returns
+        -------
+        float: urgency_score
+
+        """
+
+        preprocessed_message = " ".join(self.preprocessor(message))
+        prediction = self.model.predict([preprocessed_message])
+        return float(prediction)
+
+    def get_model(self):
+        """
+            return prediction model
+        Returns
+        -------
+        sklearn.models.Pipeline: model
+        """
+        return self.model

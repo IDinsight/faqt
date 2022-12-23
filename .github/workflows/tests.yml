@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "**"
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   RunUnitTests:
@@ -16,8 +18,7 @@ jobs:
           sudo apt-get install python3.9 jq -y
       - name: Install libraries
         run: |
-          cat requirements.txt | xargs -n 1 -L 1 pip install
-          pip install -r requirements_dev.txt
+          pip install '.[dev]'
           nltkdownload=`cat <<EOF
           import nltk
           nltk.download('stopwords')
@@ -31,6 +32,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      
       - name: Make huggingface model dir
         run: mkdir -p ./tests/data/sequence_classification_models/huggingface_model
       - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
@@ -47,6 +49,17 @@ jobs:
           tar -xvf ./tests/data/sequence_classification_models/huggingface_model.tar.gz -C ./tests/data/sequence_classification_models/huggingface_model
           rm ./tests/data/sequence_classification_models/huggingface_model.tar.gz
           echo "model saved to ./tests/data/sequence_classification_models/huggingface_model"
+      - name: Make ud_ml_model dir
+        run: mkdir -p ./tests/data/ud_ml_models
+      - uses: keithweaver/aws-s3-github-action@v1.0.0 # Verifies the recursive flag
+        name: Download Urgency Detection ML model
+        with:
+          command: cp
+          source: s3://${{ secrets.WORD2VEC_BINARY_BUCKET }}/model_test.joblib
+          destination: ./tests/data/ud_ml_models/model_test.joblib
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws_region: ${{ secrets.AWS_REGION }}
       - name: Run Unit Tests
         env:
           WORD2VEC_BINARY_BUCKET: ${{secrets.WORD2VEC_BINARY_BUCKET}}
