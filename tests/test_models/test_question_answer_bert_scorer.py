@@ -81,10 +81,10 @@ class TestQuestionAnswerBERTScorer:
         # Set correct values at the end of test
         try:
             import transformers
-
-            faqt.model.faq_matching.bert._has_bert_dependencies = True
         except ImportError:
             faqt.model.faq_matching.bert._has_bert_dependencies = False
+        else:
+            faqt.model.faq_matching.bert._has_bert_dependencies = True
 
     def test_scorer_model_is_loaded(self, bert_scorer):
         assert isinstance(bert_scorer.model, Pipeline)
