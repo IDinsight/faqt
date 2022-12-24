@@ -52,6 +52,7 @@ class TestQuestionAnswerBERTScorer:
 
     def test_importing_faqt_without_optional_package_succeeds(self):
         # Make transformers library not available
+        original_value = sys.modules["transformers"]
         sys.modules["transformers"] = None
 
         try:
@@ -60,6 +61,8 @@ class TestQuestionAnswerBERTScorer:
             pytest.fail(
                 "Unexpected ImportError: faqt import should work even if the optional library `transformers` is not installed."
             )
+
+        sys.modules["transformers"] = original_value
 
     def test_import_error_raised_if_optional_package_unavailable(self, bert_model_path):
         # Patch the module-level global variable that's set during import
@@ -74,6 +77,14 @@ class TestQuestionAnswerBERTScorer:
             faqt.model.faq_matching.bert.QuestionAnswerBERTScorer(
                 model_path=bert_model_path
             )
+
+        # Set correct values at the end of test
+        try:
+            import transformers
+
+            faqt.model.faq_matching.bert._has_bert_dependencies = True
+        except ImportError:
+            faqt.model.faq_matching.bert._has_bert_dependencies = False
 
     def test_scorer_model_is_loaded(self, bert_scorer):
         assert isinstance(bert_scorer.model, Pipeline)
