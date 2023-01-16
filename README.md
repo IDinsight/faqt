@@ -39,14 +39,14 @@ all necessary steps like tokenization and vectorization.
 
 Eventually FAQT will be open-source and available from PyPI. In the meantime, you can use `pip` to install it from github:
 ```bash
-pip install git+https://@github.com/IDinsight/faqt.git@main
+pip install git+https://github.com/IDinsight/faqt.git@main
 ```
 It will prompt you for your username and password since the repository is private.
 
 ## Extended installation
 To use a BERT-based model such as `faqt.model.faq_matching.bert.QuestionAnswerBERTScorer` or  the `faqt.preprocessing.tokens.CustomHunspell` class, install faqt with its `extended` optional dependencies:
 ```bash
-pip install git+https://@github.com/IDinsight/faqt.git@main[extended]
+pip install "faqt[extended] @ git+https://github.com/IDinsight/faqt.git@main"
 ```
 
 # Basic Usage
