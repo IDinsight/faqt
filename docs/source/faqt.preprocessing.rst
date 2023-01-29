@@ -1,8 +1,10 @@
-Preprocessing api 
+faqt.preprocessing package
 ==========================
 
+Submodules
+----------
 
-faqt.preprocessing.methods
+faqt.preprocessing.methods module
 ---------------------------------
 
 .. automodule:: faqt.preprocessing.methods
@@ -10,7 +12,7 @@ faqt.preprocessing.methods
    :undoc-members:
    :show-inheritance:
 
-faqt.preprocessing.text
+faqt.preprocessing.text module
 ------------------------------
 
 .. automodule:: faqt.preprocessing.text
@@ -18,7 +20,7 @@ faqt.preprocessing.text
    :undoc-members:
    :show-inheritance:
 
-faqt.preprocessing.tokens
+faqt.preprocessing.tokens module
 --------------------------------
 
 .. automodule:: faqt.preprocessing.tokens

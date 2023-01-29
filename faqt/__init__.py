@@ -1,4 +1,5 @@
 __version__ = "1.0.2"
+__module__ = "faqt"
 
 from .model import (
     KeywordRule,

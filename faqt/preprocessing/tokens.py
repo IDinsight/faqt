@@ -86,15 +86,14 @@ class CustomHunspell(object):
     correction. The following three items override the default Hunspell
     instance's `spell` and `suggest` methods.
 
-    - Spell checking
-      - `custom_spell_check_list`: list of additional valid words.
-    - Spell correction
-      -  `custom_spell_correct_map`: Dictionary of custom spell corrections,
-            e.g. {'jondis': 'jaundice'} to override
-            `hunspell.Hunspell.suggest' spell correction method
-      -  `priority_words`: List of words to consider first in a list of suggested
-            spell-corrected words, in order of preference.
-
+    * Spell checking
+        * `custom_spell_check_list`: list of additional valid words.
+    * Spell correction
+        * `custom_spell_correct_map`: Dictionary of custom spell corrections,
+          e.g. `{'jondis': 'jaundice'}` to override `hunspell.Hunspell.suggest' spell
+          correction method
+        * `priority_words`: List of words to consider first in a list of suggested
+          spell-corrected words, in order of preference.
     """
 
     def __init__(

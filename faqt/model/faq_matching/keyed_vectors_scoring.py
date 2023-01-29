@@ -556,19 +556,23 @@ def model_search_word(
 ):
     """
     Returns vector embedding (or None) for word, trying in order:
+
     1.  Special contextualization glossary (custom WVs)
     2.  Given case
     3.  Lowercase
     4.  Title case
     5.  Various alternative spellings of word, using Hunspell
-            The best alternative spelling is that with highest cosine similarity
-            to any of the words in tags_guiding_typos. Alternative spellings are
-            only considered if tags_guiding_typos is not None.
+
+    The best alternative spelling is that with highest cosine similarity
+    to any of the words in `tags_guiding_typos`. Alternative spellings are
+    only considered if `tags_guiding_typos` is not None.
 
     Parameters
     ----------
     word : str
-    model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
+        Word to search in the model
+    model : gensim.models.KeyedVectors
+        If using Google News Embeddings, it must be pre-normalized.
     glossary : dict, optional
         Custom contextualization glossary. Words to replace are keys; their values
         must be dictionaries with (replacement words : weight) as key-value
@@ -659,10 +663,12 @@ def model_search(
     `faqt.model.faq_matching.keyed_vector_scoring.model_search_word` for how
     exactly the tokens are searched in the model.
 
-    Parameters:
-    ------------
-    word : str
-    model : Word2Vec model (or KeyedVectors) - MUST BE PRE-NORMALIZED!
+    Parameters
+    ----------
+    tokens : list[str]
+        List of words to search from the model.
+    model : gensim.models.KeyedVectors
+        If using Google News Embeddings, it must be pre-normalized.
     glossary : dict or None
         Custom contextualization glossary. Words to replace are keys; their values
         must be dictionaries with (replacement words : weight) as key-value pairs

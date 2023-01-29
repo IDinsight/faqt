@@ -4,11 +4,11 @@ faqt.model package
 Subpackages
 -----------
 
-   .. toctree::
-      :maxdepth: 4
+.. toctree::
+   :maxdepth: 4
 
-      faqt.model.faq_matching
-      faqt.model.urgency_detection
+   faqt.model.faq_matching
+   faqt.model.urgency_detection
 
 Module contents
 ---------------

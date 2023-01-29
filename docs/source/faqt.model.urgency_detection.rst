@@ -1,23 +1,21 @@
-Urgency detection Api 
+faqt.model.urgency\_detection package
 =====================================
 
+Submodules
+----------
 
-faqt.model.urgency\_detection.urgency\_detection\_base 
+faqt.model.urgency\_detection.urgency\_detection\_base module
 -------------------------------------------------------------
+
 .. automodule:: faqt.model.urgency_detection.urgency_detection_base
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
+Module contents
+---------------
 
-   .. rubric:: Functions
-
-   .. autofunction:: evaluate_keyword_rule
-      
-   .. rubric:: Classes
-
-   .. autoclass:: RuleBasedUD
-      :members:
-      
-   
-      
-      
-      
-
+.. automodule:: faqt.model.urgency_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:

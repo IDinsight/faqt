@@ -11,17 +11,6 @@ Subpackages
    faqt.preprocessing
    faqt.scoring
 
-Submodules
-----------
-
-faqt.utils module
------------------
-
-.. automodule:: faqt.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

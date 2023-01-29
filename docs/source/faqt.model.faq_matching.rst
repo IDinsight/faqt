@@ -1,7 +1,10 @@
-Faq matching api  
-================================s
+faqt.model.faq\_matching package
+================================
 
-faqt.model.faq\_matching.bert
+Submodules
+----------
+
+faqt.model.faq\_matching.bert module
 ------------------------------------
 
 .. automodule:: faqt.model.faq_matching.bert
@@ -9,7 +12,7 @@ faqt.model.faq\_matching.bert
    :undoc-members:
    :show-inheritance:
 
-faqt.model.faq\_matching.keyed\_vectors\_scoring
+faqt.model.faq\_matching.keyed\_vectors\_scoring module
 -------------------------------------------------------
 
 .. automodule:: faqt.model.faq_matching.keyed_vectors_scoring

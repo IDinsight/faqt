@@ -90,8 +90,6 @@ class RuleBasedUD(UrgencyDetectionBase):
 
     def __init__(self, model, preprocessor):
         """
-        Setting model (rule based models)
-
         Parameters
         -----------
         model : List[faqt.model.urgency_detection.KeywordRule]
@@ -102,20 +100,22 @@ class RuleBasedUD(UrgencyDetectionBase):
         super(RuleBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
-        """Checks if rules are set."""
+        """Checks if rules are set"""
         return self.model is not None and len(self.model) > 0
 
     def predict(self, message):
         """
-        return  final urgency score.
+        Return final urgency score
+
         Parameters
         ----------
         message : str
             A string or a list of pre-processed tokens to evaluate keyword
-                rules on.
+            rules on.
+
         Returns
         -------
-        float: urgency_score
+        float : urgency_score
 
 
         """
@@ -135,15 +135,16 @@ class RuleBasedUD(UrgencyDetectionBase):
         message : str or List[str]
             A string or a list of pre-processed tokens to evaluate keyword
             rules on.
+
         Returns
         -------
         List[float]: Urgency score for each rule in rules list
 
 
         """
-
         if not self.is_set():
             raise ValueError("Rules have not been added")
+
         preprocessed_message = self.preprocessor(message)
         evaluations = [
             evaluate_keyword_rule(preprocessed_message, rule) for rule in self.model
@@ -171,11 +172,13 @@ class MLBasedUD(UrgencyDetectionBase):
 
     def predict(self, message):
         """
-        return  final urgency score.
+        Return final urgency score.
+
         Parameters
         ----------
         message : str
             A string or a list of pre-processed tokens to classify as urgent or not.
+
         Returns
         -------
         float: urgency_score
@@ -188,7 +191,8 @@ class MLBasedUD(UrgencyDetectionBase):
 
     def get_model(self):
         """
-            return prediction model
+        Return prediction model
+
         Returns
         -------
         sklearn.models.Pipeline: model
