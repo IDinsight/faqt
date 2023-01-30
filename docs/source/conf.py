@@ -19,7 +19,7 @@ sys.path.insert(0, target_dir)
 
 # -- Project information -----------------------------------------------------
 
-project = "faqt"
+project = "FAQT"
 copyright = "2022, IDinsight"
 author = "IDinsight"
 
