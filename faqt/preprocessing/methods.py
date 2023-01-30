@@ -1,5 +1,5 @@
 """
-Text pre-processing for word embeddings
+Text pre-processing methods composed of various steps
 """
 __all__ = ["preprocess_text_for_word_embedding", "preprocess_text_for_keyword_rule"]
 

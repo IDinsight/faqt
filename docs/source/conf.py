@@ -24,7 +24,9 @@ copyright = "2022, IDinsight"
 author = "IDinsight"
 
 # The full version, including alpha/beta/rc tags
-release = "1.0.2"
+from faqt import __version__
+
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------

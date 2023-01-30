@@ -1,3 +1,7 @@
+"""
+Preprocessing functions that operate on texts.
+"""
+
 import re
 import urllib
 

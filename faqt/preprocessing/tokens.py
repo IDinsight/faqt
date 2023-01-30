@@ -1,4 +1,7 @@
-"""Preprocessing functions that operate on a token or list of tokens."""
+"""
+Preprocessing methods that operate on a token or list of tokens.
+"""
+
 from copy import copy
 from itertools import chain, tee
 
@@ -82,18 +85,36 @@ def remove_stop_words(tokens, reincluded_stop_words=None):
 
 class CustomHunspell(object):
     """
-    `hunspell.Hunspell`-like class with custom dictionary and custom spell
+    ``hunspell.Hunspell``-like class with custom dictionary and custom spell
     correction. The following three items override the default Hunspell
-    instance's `spell` and `suggest` methods.
+    instance's ``spell`` and ``suggest`` methods.
 
     * Spell checking
-        * `custom_spell_check_list`: list of additional valid words.
+        * ``custom_spell_check_list``: list of additional valid words.
     * Spell correction
-        * `custom_spell_correct_map`: Dictionary of custom spell corrections,
-          e.g. `{'jondis': 'jaundice'}` to override `hunspell.Hunspell.suggest' spell
+        * ``custom_spell_correct_map``: Dictionary of custom spell corrections,
+          e.g. ``{'jondis': 'jaundice'}`` to override ``hunspell.Hunspell.suggest`` spell
           correction method
-        * `priority_words`: List of words to consider first in a list of suggested
+        * ``priority_words``: List of words to consider first in a list of suggested
           spell-corrected words, in order of preference.
+
+    Parameters
+    ----------
+    custom_spell_check_list : List[str], optional
+        List of words to override ``hunspell.Hunspell.spell`` spell checker
+    custom_spell_correct_map : Dict[str, str], optional
+        Dictionary of custom spell corrections, e.g. ``{'jondis': 'jaundice'}``
+        to override ``hunspell.Hunspell.suggest'` spell correction method
+    priority_words : List[str]
+        List of words to consider first in a list of suggested
+        spell-corrected words, in order of preference.
+    hunspell : hunspell.HunspellWrap, optional
+        Optional Hunspell instance. If not provided, faqt creates a default
+        Hunspell instance. (Hence, hunspell must be installed)
+
+    Raises
+    ------
+    ImportError: if hunspell is not provided AND hunspell library is not installed.
     """
 
     def __init__(
@@ -103,25 +124,6 @@ class CustomHunspell(object):
         priority_words=None,
         hunspell=None,
     ):
-        """
-        Parameters
-        ----------
-        custom_spell_check_list : List[str], optional
-            List of words to override `hunspell.Hunspell.spell` spell checker
-        custom_spell_correct_map : Dict[str, str], optional
-            Dictionary of custom spell corrections, e.g. {'jondis': 'jaundice'}
-            to override `hunspell.Hunspell.suggest' spell correction method
-        priority_words : List[str]
-            List of words to consider first in a list of suggested
-            spell-corrected words, in order of preference.
-        hunspell : hunspell.HunspellWrap, optional
-            Optional Hunspell instance. If not provided, faqt creates a default
-            Hunspell instance. (Hence, hunspell must be installed)
-
-        Raises
-        ------
-        ImportError: if hunspell is not provided AND hunspell library is not installed.
-        """
         if hunspell is None:
             if not _has_hunspell:
                 raise ImportError(

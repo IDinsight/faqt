@@ -63,40 +63,42 @@ def evaluate_keyword_rule(message, rule):
 
 
 class UrgencyDetectionBase(ABC):
-    """Base class for Urgency detection  models. Whether ML based or not."""
+    """
+    Base class for Urgency detection models
+
+    Parameters
+    -----------
+    model : sklearn.pipeline.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
+        Model to use for predictions.
+    preprocessor : function
+        Function to preprocess the message
+    """
 
     def __init__(self, model, preprocessor):
-        """
-        Setting model (whether it is rule based or not)
-
-        Parameters
-        -----------
-        model : sklearn.pipeline.Pipeline or List[faqt.model.urgency_detection.KeywordRule]
-            Model to use for predictions.
-        preprocessor : function
-            Function to preprocess the message
-        """
+        """Initialize"""
         self.preprocessor = preprocessor
         self.model = model
 
     @abstractmethod
     def predict(self, messages):
-        """make prediction on the text"""
+        """Make prediction on the text"""
         raise NotImplementedError
 
 
 class RuleBasedUD(UrgencyDetectionBase):
-    """Rule-based  model"""
+    """
+    Rule-based  model
+
+    Parameters
+    -----------
+    model : List[faqt.model.urgency_detection.KeywordRule]
+        List of KeywordRule objects to use for predictions.
+    preprocessor : function
+        Function to preprocess the message
+    """
 
     def __init__(self, model, preprocessor):
-        """
-        Parameters
-        -----------
-        model : List[faqt.model.urgency_detection.KeywordRule]
-            List of KeywordRule objects to use for predictions.
-        preprocessor : function
-            Function to preprocess the message
-        """
+        """Initialize"""
         super(RuleBasedUD, self).__init__(model, preprocessor)
 
     def is_set(self):
@@ -155,19 +157,19 @@ class RuleBasedUD(UrgencyDetectionBase):
 
 
 class MLBasedUD(UrgencyDetectionBase):
-    """Machine Learning  based  model"""
+    """
+    Machine Learning  based  model
+
+    Parameters
+    -----------
+    model : sklearn.models.Pipeline
+        Machine Learning model to use for predictions.
+    preprocessor : function
+        Function to preprocess the message. During prediction, the raw text will be preprocessed using this function, and then passed to the `model`'s predict function.
+    """
 
     def __init__(self, model, preprocessor):
-        """
-        Setting model (ML based models)
-
-        Parameters
-        -----------
-        model : sklearn.models.Pipeline
-            Machine Learning model to use for predictions.
-        preprocessor : function
-            Function to preprocess the message. During prediction, the raw text will be preprocessed using this function, and then passed to the `model`'s predict function.
-        """
+        """Initialize"""
         super(MLBasedUD, self).__init__(model, preprocessor)
 
     def predict(self, message):

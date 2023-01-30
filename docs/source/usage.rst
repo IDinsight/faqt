@@ -1,15 +1,12 @@
-FAQT Usage
-==========
+How FAQT works
+==============
 
 FAQT gives you a suite of approaches for matching text to existing
 content (like FAQs) or detecting urgency in a text in low and high
 resource settings.
 
-How it works
-------------
-
 FAQ matching
-~~~~~~~~~~~~
+------------
 
 FAQT’s FAQ Scorers score text (e.g. user message) against a list of
 predetermined contents (e.g. FAQs) based on their relevance to the text.
@@ -29,7 +26,7 @@ the match scoring. It outputs the match score for each of the content.
    (0.0). 
    
 Urgency detection
-~~~~~~~~~~~~~~~~~
+-----------------
 
 Currently, FAQT provides two models for urgency detection: rule-based
 and machine-learning-based (ML-based). The Urgency Detector accepts a
@@ -87,8 +84,9 @@ between the word vectors of the input and word vectors of the content.
 
     from gensim.models import Word2Vec
 
+    pretrained_embedding_path = “GoogleNews-vectors-negative300.bin”
     word_embedding = Word2Vec.load_word2vec_format(
-        “GoogleNews-vectors-negative300.bin”, # some pre-trained embedding
+        pretrained_embedding_path,
         binary=True,
         norm_only=True
     )
@@ -148,7 +146,7 @@ We show an example that uses the `faqt.model.urgency_detection.RuleBasedUD`.
 
 .. code-block:: python
 
-    from faqt.models import KeywordRule
+    from faqt.model import KeywordRule
 
     rules = [
         KeywordRule(

@@ -3,8 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-
-.. module:: faqt
 Welcome to FAQT's documentation!
 ================================
 **FAQT** gives you a suite of approaches for matching text to existing content (like FAQs) or detecting urgency in a text in low and high resource settings.
@@ -43,7 +41,7 @@ Usage
 Contents
 --------
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
 
    faqt
 

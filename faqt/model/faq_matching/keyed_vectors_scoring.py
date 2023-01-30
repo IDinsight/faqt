@@ -11,7 +11,60 @@ from nltk.tokenize import word_tokenize
 
 
 class KeyedVectorsScorerBase(ABC):
-    """Base class for Keyed vector scoring-type models"""
+    """
+    Base class for Keyed vector scoring-type models
+
+    Allows setting reference contents and scoring new messages against it
+
+    Parameters
+    ----------
+    word_embedding_model: gensim.models.KeyedVectors
+        Only google news word2vec binaries have been tested. Vectors must be
+        pre-normalized. See Notes below.
+
+    tokenizer: Callable[[str], list[str]], optional
+        Tokenizer for input message and/or contents. May include preprocessing
+        steps. If None, uses ``nltk.tokenize.word_tokenize`` from the `nltk` library.
+
+    glossary: Dict[str, Dict[str, float]], optional
+        Custom contextualization glossary. Words to replace are keys; their
+        values
+        must be dictionaries with (replacement words : weight) as key-value
+        pairs
+
+    hunspell: Hunspell, optional
+        Optional instance of the hunspell spell checker.
+
+    tags_guiding_typos: List[str], optional
+        Set of tag wvs to guide the correction of misspelled words.
+        For misspelled words, the best alternative spelling is that with
+        highest cosine
+        similarity to any of the wvs in tags_guiding_typos_wvs.
+
+        E.g. if ``tags_guiding_typos = {"pregnant", ...}``, then "chils" -->
+        "child"
+        rather than "chills", even though both are same edit distance.
+
+        Optional parameter. If None (or None equivalent), we assume not no
+        guiding tags'
+
+    weighting_method : string or Callable, optional
+        If a string is passed, must be in
+        ``faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS``,
+        e.g. ``add_weights``.
+
+        If a Callable is passed, it must be a function that takes in two
+        lists of floats (scores and weights) with optional
+        keyword-arguments and outputs a 1-D array of weighted scores.
+
+    weighting_kwargs : dict, optional
+        Keyword arguments to pass to ``weighting_method``
+
+    Notes
+    -----
+    * A tagsets is a collection of words (tags) designated to match incoming
+      messages
+    """
 
     def __init__(
         self,
@@ -23,62 +76,7 @@ class KeyedVectorsScorerBase(ABC):
         weighting_method=None,
         weighting_kwargs=None,
     ):
-        """
-        Allows setting reference contents and scoring new messages against it
-
-        Parameters
-        ----------
-        word_embedding_model: gensim.models.KeyedVectors
-            Only google news word2vec binaries have been tested. Vectors must be
-            pre-normalized. See Notes below.
-
-        tokenizer: Callable[[str], list[str]], optional
-            Tokenizer for input message and/or contents. May include preprocessing
-            steps. If None, uses `nltk.tokenize.word_tokenize` from the `nltk` library.
-
-        glossary: Dict[str, Dict[str, float]], optional
-            Custom contextualization glossary. Words to replace are keys; their
-            values
-            must be dictionaries with (replacement words : weight) as key-value
-            pairs
-
-        hunspell: Hunspell, optional
-            Optional instance of the hunspell spell checker.
-
-        tags_guiding_typos: List[str], optional
-            Set of tag wvs to guide the correction of misspelled words.
-            For misspelled words, the best alternative spelling is that with
-            highest cosine
-            similarity to any of the wvs in tags_guiding_typos_wvs.
-
-            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
-            "child"
-            rather than "chills", even though both are same edit distance.
-
-            Optional parameter. If None (or None equivalent), we assume not no
-            guiding tags'
-
-        weighting_method : string or Callable, optional
-            If a string is passed, must be in
-            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
-            e.g. `add_weights`.
-
-            If a Callable is passed, it must be a function that takes in two
-            lists of floats (scores and weights) with optional
-            keyword-arguments and outputs a 1-D array of weighted scores.
-
-        weighting_kwargs : dict, optional
-            Keyword arguments to pass to `weighting_method`
-
-        Notes
-        -----
-        * word embedding binary must contain prenormalized vectors. This is to
-          reduce operations needed when calculating distance. See script in
-          `faqt.scripts` to prenormalize your vectors.
-        * A tagsets is a collection of words (tags) designated to match incoming
-          messages
-        """
-
+        """Initialize"""
         self.word_embedding_model = word_embedding_model
 
         glossary = glossary or {}
@@ -237,7 +235,81 @@ class KeyedVectorsScorerBase(ABC):
 
 
 class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
-    """Stepwise model"""
+    """
+    Allows setting reference contents (as tagsets) and scoring new messages
+    against it. Allows for token-level pairwise scoring,
+    where ``tag_scoring_method`` is applied to score the message on
+    individual tags first, then ``score_reduction_method`` is applied to
+    reduce the scores to a single overall score for the tagset.
+
+    Parameters
+    ----------
+    word_embedding_model: gensim.models.KeyedVectors
+        Only google news word2vec binaries have been tested. Vectors must be
+        pre-normalized. See Notes below.
+
+    tag_scoring_method : string or Callable, default: ``"cs_nearest_k_percent_average"``
+        If a string is passed, it must be in
+        `faqt.scoring.tag_scoring.TAG_SCORING_METHODS`.
+
+        If a callable is passed it must be a function that takes in a
+        list of vectors (tokens tokens) as its
+        first argument and a single vector (tag) as the second argument.
+
+    tag_scoring_kwargs : dict, optional
+        Keyword arguments for `tag_scoring_method`
+
+    score_reduction_method : string or Callable, default: "simple_mean"
+        If a string is passed it must be in
+        `faqt.scoring.score_reduction.SCORE_REDUCTION_METHODS`.
+
+        If a callable is passed it must be a function that takes in a
+        list of floats (scores) and reduces it to a scalar float value.
+
+    score_reduction_kwargs : dict, optional
+        Keyword arguments for `score_reduction_method`
+
+    weighting_method : string or Callable, optional
+        If a string is passed, must be in
+        `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
+        e.g. `add_weights`.
+
+        If a Callable is passed, it must be a function that takes in two
+        lists of floats (scores and weights) with optional
+        keyword-arguments and outputs a 1-D array of weighted scores.
+
+    weighting_kwargs : dict, optional
+        Keyword arguments to pass to `weighting_method`
+
+    glossary: Dict[str, Dict[str, float]], optional
+        Custom contextualization glossary. Words to replace are keys; their
+        values
+        must be dictionaries with (replacement words : weight) as key-value
+        pairs
+
+    hunspell: Hunspell, optional
+        Optional instance of the hunspell spell checker.
+
+    tags_guiding_typos: List[str], optional
+        Set of tag wvs to guide the correction of misspelled words.
+        For misspelled words, the best alternative spelling is that with
+        highest cosine similarity to any of the wvs in `tags_guiding_typos_wvs.`
+
+        E.g. if ``tags_guiding_typos = {"pregnant", ...}``, then "chils" -->
+        "child" rather than "chills", even though both are same edit
+        distance.
+
+        Optional parameter. If None (or None equivalent), we assume not no
+        guiding tags'
+
+    Notes
+    -----
+    * word embedding binary must contain prenormalized vectors. This is to
+      reduce operations needed when calculating distance. See script in
+      ``faqt.scripts`` to prenormalize your vectors.
+    * A tagsets is a collection of words (tags) designated to match incoming
+      messages
+    """
 
     def __init__(
         self,
@@ -253,82 +325,7 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
         hunspell=None,
         tags_guiding_typos=None,
     ):
-        """
-        Allows setting reference contents (as tagsets) and scoring new messages
-        against it. Allows for token-level pairwise scoring,
-        where `tag_scoring_method` is applied to score the message on
-        individual tags first, then `score_reduction_method` is applied to
-        reduce the scores to a single overall score for the tagset.
-
-        Parameters
-        ----------
-        word_embedding_model: gensim.models.KeyedVectors
-            Only google news word2vec binaries have been tested. Vectors must be
-            pre-normalized. See Notes below.
-
-        tag_scoring_method : string or Callable, default:
-        "cs_nearest_k_percent_average"
-            If a string is passed, it must be in
-            `faqt.scoring.tag_scoring.TAG_SCORING_METHODS`.
-
-            If a callable is passed it must be a function that takes in a
-            list of vectors (tokens tokens) as its
-            first argument and a single vector (tag) as the second argument.
-
-        tag_scoring_kwargs : dict, optional
-            Keyword arguments for `tag_scoring_method`
-
-        score_reduction_method : string or Callable, default: "simple_mean"
-            If a string is passed it must be in
-            `faqt.scoring.score_reduction.SCORE_REDUCTION_METHODS`.
-
-            If a callable is passed it must be a function that takes in a
-            list of floats (scores) and reduces it to a scalar float value.
-
-        score_reduction_kwargs : dict, optional
-            Keyword arguments for `score_reduction_method`
-
-        weighting_method : string or Callable, optional
-            If a string is passed, must be in
-            `faqt.scoring.score_weighting.SCORE_WEIGHTING_METHODS`,
-            e.g. `add_weights`.
-
-            If a Callable is passed, it must be a function that takes in two
-            lists of floats (scores and weights) with optional
-            keyword-arguments and outputs a 1-D array of weighted scores.
-
-        weighting_kwargs : dict, optional
-            Keyword arguments to pass to `weighting_method`
-
-        glossary: Dict[str, Dict[str, float]], optional
-            Custom contextualization glossary. Words to replace are keys; their
-            values
-            must be dictionaries with (replacement words : weight) as key-value
-            pairs
-
-        hunspell: Hunspell, optional
-            Optional instance of the hunspell spell checker.
-
-        tags_guiding_typos: List[str], optional
-            Set of tag wvs to guide the correction of misspelled words.
-            For misspelled words, the best alternative spelling is that with
-            highest cosine similarity to any of the wvs in `tags_guiding_typos_wvs.`
-
-            E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" -->
-            "child" rather than "chills", even though both are same edit
-            distance.
-
-            Optional parameter. If None (or None equivalent), we assume not no
-            guiding tags'
-
-        Notes
-        -----
-        * word embedding binary must contain prenormalized vectors. This is to
-          reduce operations needed when calculating distance. See script in
-          `faqt.scripts` to prenormalize your vectors.
-        * A tagsets is a collection of words (tags) designated to match incoming
-          messages
-        """
+        """Initialize"""
         super(StepwiseKeyedVectorsScorer, self).__init__(
             word_embedding_model,
             tokenizer=tokenizer,
@@ -450,6 +447,7 @@ class WMDScorer(KeyedVectorsScorerBase):
         hunspell=None,
         tags_guiding_typos=None,
     ):
+        """Initialize"""
         super(WMDScorer, self).__init__(
             word_embedding_model,
             tokenizer=tokenizer,
@@ -584,7 +582,7 @@ def model_search_word(
         the best alternative spelling is that with highest cosine similarity
         to any of the wvs in tags_guiding_typos_wvs.
 
-        E.g. if tags_guiding_typos = {"pregnant", ...}, then "chils" --> "child"
+        E.g. if ``tags_guiding_typos = {"pregnant", ...}``, then "chils" --> "child"
         rather than "chills", even though both are same edit distance.
 
         Optional parameter. If None (or None equivalent), step 5 above is skipped.
