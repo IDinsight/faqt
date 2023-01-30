@@ -84,7 +84,7 @@ between the word vectors of the input and word vectors of the content.
 
     from gensim.models import Word2Vec
 
-    pretrained_embedding_path = “GoogleNews-vectors-negative300.bin”
+    pretrained_embedding_path = "GoogleNews-vectors-negative300.bin"
     word_embedding = Word2Vec.load_word2vec_format(
         pretrained_embedding_path,
         binary=True,
@@ -150,10 +150,10 @@ We show an example that uses the `faqt.model.urgency_detection.RuleBasedUD`.
 
     rules = [
         KeywordRule(
-            include=[preprocess(word) for word in [“blurry”, “vision”, “headache”]]
+            include=[preprocess(word) for word in ["blurry", "vision", "headache"]]
         ), 
         KeywordRule(
-            include=[preprocess(word) for word in [“vomit”, “headache”]]
+            include=[preprocess(word) for word in ["vomit", "headache"]]
         )
     ]
 

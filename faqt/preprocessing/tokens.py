@@ -104,7 +104,7 @@ class CustomHunspell(object):
         List of words to override ``hunspell.Hunspell.spell`` spell checker
     custom_spell_correct_map : Dict[str, str], optional
         Dictionary of custom spell corrections, e.g. ``{'jondis': 'jaundice'}``
-        to override ``hunspell.Hunspell.suggest'` spell correction method
+        to override ``hunspell.Hunspell.suggest`` spell correction method
     priority_words : List[str]
         List of words to consider first in a list of suggested
         spell-corrected words, in order of preference.
