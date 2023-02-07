@@ -116,7 +116,9 @@ class KeyedVectorsScorerBase(ABC):
         optionally saves word-vectors to `self.content_vectors`."""
         raise NotImplementedError
 
-    def score_contents(self, message, return_spell_corrected=False, **kwargs):
+    def score_contents(
+        self, message, return_spell_corrected=False, weights=None, **kwargs
+    ):
         """
         Scores contents and applies weighting if `self.weighting_method` is
         not None
@@ -146,6 +148,9 @@ class KeyedVectorsScorerBase(ABC):
                 "Contents have not been set. Set contents with " "`self.set_contents()`"
             )
 
+        if weights:
+            warn("Weights have been added, content weights will be ignored. ")
+
         message_tokens = self.tokenizer(message)
         message_vectors, spell_corrected = self.model_search(message_tokens)
 
@@ -161,9 +166,17 @@ class KeyedVectorsScorerBase(ABC):
         result = self._score_contents(message_vectors, spell_corrected, **kwargs)
 
         if self.weighting_method is not None and self.content_weights is not None:
-            weighted_scores = self.weighting_method(
-                result["overall_scores"], self.content_weights, **self.weighting_kwargs
-            )
+            if weights:
+                weighted_scores = self.weighting_method(
+                    result["overall_scores"], weights, **self.weighting_kwargs
+                )
+            else:
+                weighted_scores = self.weighting_method(
+                    result["overall_scores"],
+                    self.content_weights,
+                    **self.weighting_kwargs,
+                )
+
             result["overall_scores"] = weighted_scores
 
         if return_spell_corrected:

@@ -1,5 +1,6 @@
 nltk>=3.7
 numpy>=1.22.2
-gensim@git+https://github.com/IDinsight/gensim@4.1.3#egg=gensim
+gensim==4.3.0
 POT==0.8.2
 cyhunspell==2.0.2
+scikit-learn==1.1.2

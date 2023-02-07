@@ -1,8 +1,9 @@
 tags_refresh_data:
   - id: 1
-    tags: ["rock", "guitar", "melody", "chord"]
-    title: "music"
+    tags: ["rock", "guitar", "melody", "chord"] 
     content_to_send: "Where words fail, music speaks"
+    context: ["music","word"]
+    title: "music"
     example_questions:
       - "I can't describe in words how I feel."
       - "What do you think of music?"
@@ -10,6 +11,7 @@ tags_refresh_data:
   - id: 2
     tags: ["cheese", "tomato", "bread", "mustard"]
     content_to_send: "We finish each other's sandwiches"
+    context: ["food","holiday"]
     title: "sandwich"
     example_questions:
       - "What should we do with these sandwiches?"
@@ -17,6 +19,7 @@ tags_refresh_data:
   - id: 3
     tags: ["rock", "lake", "mountain", "sky"]
     content_to_send: "Let's do it. But outside."
+    context: ["holiday","music"]
     title: "nature"
     example_questions:
       - "should we go climbing?"
@@ -25,6 +28,7 @@ tags_refresh_data:
   - id: 4
     tags: ["trace", "vector", "length", "angle"]
     content_to_send: "Whenever you can, count"
+    context: ["word","holiday"]
     title: "math"
     example_questions:
       - "How can I know the cardinality of everything"
@@ -34,6 +38,7 @@ tags_refresh_data:
     content_to_send: >
       When I feel like exercising,
       I just lie down until the feeling goes away
+    context: ["holiday","food"]
     title: "hobby"
     example_questions:
       - "Do you like to exercise?"
@@ -43,6 +48,7 @@ tags_refresh_data:
     content_to_send: >
       Nothing would be more tiresome than eating and drinking
       if God had not made them a pleasure as well as a necessity.
+    context: ["food","word"]
     title: "life"
     example_questions:
       - "Do you like to eat and drink"
