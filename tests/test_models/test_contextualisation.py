@@ -60,13 +60,24 @@ class TestContextualisation:
             ),
         ],
     )
-    def test_context_matrix_size(self, faq, context):
+    def test_context_matrix_shape(self, faq, context):
         distance_matrix = get_ordered_distance_matrix(context_list=context)
         contextualisator = Contextualisation(faqs=faq, distance_matrix=distance_matrix)
         assert contextualisator._context_matrix.shape == (
             len(faq),
             len(distance_matrix.columns),
         )
+
+    @pytest.mark.parametrize(
+        "distance_matrix",
+        [(pd.DataFrame())],
+    )
+    def test_empty_distance_matrix_return_error(self, faqs, distance_matrix):
+
+        with pytest.raises(ValueError):
+            contextualisator = Contextualisation(
+                faqs=faqs, distance_matrix=distance_matrix
+            )
 
     @pytest.mark.parametrize(
         "faq,context",
