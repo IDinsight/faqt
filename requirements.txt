@@ -4,3 +4,4 @@ gensim==4.3.0
 POT==0.8.2
 cyhunspell==2.0.2
 scikit-learn==1.1.2
+pandas==1.5.3
