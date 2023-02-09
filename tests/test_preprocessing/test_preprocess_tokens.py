@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 from faqt.preprocessing.tokens import (
     CustomHunspell,
@@ -143,6 +145,37 @@ class TestEntityRecognition:
 
 
 class TestCustomHunspell:
+    def test_importing_faqt_without_optional_package_succeeds(self):
+        # Make hunspell library not available
+        original_value = sys.modules["hunspell"]
+        sys.modules["hunspell"] = None
+
+        try:
+            import faqt
+        except ImportError:
+            pytest.fail(
+                "Unexpected ImportError: faqt import should work even if the optional library `hunspell` is not installed."
+            )
+
+        sys.modules["hunspell"] = original_value
+
+    def test_import_error_raised_if_optional_package_unavailable(self):
+        # Patch the module-level global variable that's set during import
+        import faqt
+
+        faqt.preprocessing.tokens._has_hunspell = False
+
+        with pytest.raises(ImportError, match=r"Could not import hunspell library. "):
+            faqt.preprocessing.tokens.CustomHunspell()
+
+        # Set correct values at the end of test
+        try:
+            from hunspell import Hunspell
+        except ImportError:
+            faqt.preprocessing.tokens._has_hunspell = False
+        else:
+            faqt.preprocessing.tokens._has_hunspell = True
+
     def test_custom_spell_check(self):
         huns = CustomHunspell(custom_spell_check_list=["texting"])
         assert huns.spell("texting")

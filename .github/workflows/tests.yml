@@ -15,7 +15,7 @@ jobs:
       - name: Install Dependencies with Apt Get
         run: |
           sudo apt-get update
-          sudo apt-get install python3.8 jq -y
+          sudo apt-get install python3.9 jq -y
       - name: Install libraries
         run: |
           pip install '.[dev]'
