@@ -4,12 +4,14 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from warnings import warn
 
 
-class Contextualisation:
-    """Contextualisation class to use the context information to calculate weights"""
+class Contextualization:
+    """
 
-    def __init__(self, faqs, distance_matrix):
-        """
-        Allows the creation of the Contextualisation object and  creates the context matrix and distance_matrix
+    Contextualization class to use  context information to calculate weights.
+
+    Contextualization can be used to calculate weights to be attributed to each content while scoring.
+    This weight is calculated using some contexts obtained from each content and the context of the message.
+
 
         Parameters
         ----------
@@ -20,9 +22,11 @@ class Contextualisation:
             A matrix as form of a pandas dataframe with the contexts list as columns and index. and distance between each context as value.
 
 
-        """
+    """
 
-        if len(faqs) < 1:
+    def __init__(self, contents, distance_matrix):
+        """Define constructor"""
+        if len(contents) < 1:
             warn("No faqs detected, No weight will be calculated.")
 
         if len(distance_matrix) < 1:
@@ -31,43 +35,42 @@ class Contextualisation:
             )
         self.contexts = list(distance_matrix.columns)
         self.binarizer = MultiLabelBinarizer(classes=self.contexts)
-        self._context_matrix = self._get_context_matrix(faqs)
+        self._context_matrix = self._get_context_matrix(contents)
         self._distance_matrix = distance_matrix.values
 
         self.b = 0.1
 
-    def _get_context_matrix(self, faqs):
-        """Get context matrix from faqs"""
-        faq_contexts = [faq["context"] for faq in faqs]
-        return self.binarizer.fit_transform(faq_contexts)
+    def _get_context_matrix(self, content_contexts):
+        """Get context matrix from contents"""
+        return self.binarizer.fit_transform(content_contexts)
 
-    def _inbound_content_vector(self, inbound_content):
-        """Get get inbound content as vector"""
+    def _message_context_vector(self, message_context):
+        """Get message content as vector"""
 
-        if len(inbound_content) < 1:
+        if len(message_context) < 1:
             raise ValueError("Inbound content cannot be empty")
 
-        inbound_vector = [
+        message_vector = [
             self.contexts.index(value)
-            for value in inbound_content
+            for value in message_context
             if value in self.contexts
         ]
-        if len(inbound_vector) != len(inbound_content):
-            invalid = [value for value in inbound_content if value not in self.contexts]
+        if len(message_vector) != len(message_context):
+            invalid = [value for value in message_context if value not in self.contexts]
             raise ValueError(f"Unknown contexts : {str(invalid)} ")
         else:
-            return inbound_vector
+            return message_vector
 
-    def get_context_weights(self, inbound_content):
+    def get_context_weights(self, message_context):
         """
-        Get context weights from content.
+        Get context weights from the message contexts.
 
         Parameters
         ----------
 
 
-        contexts :List[str]
-            list of content
+        message_context :List[str]
+            list of contexts
 
 
         """
@@ -75,9 +78,9 @@ class Contextualisation:
         def rbf(b, d):
             return np.exp(-((b * d) ** 2))
 
-        inbound_vector = self._inbound_content_vector(inbound_content)
+        message_vector = self._message_context_vector(message_context)
 
-        D = self._distance_matrix[inbound_vector].min(axis=0)
+        D = self._distance_matrix[message_vector].min(axis=0)
 
         rbf_weights = rbf(self.b, D)
         weights = (rbf_weights * self._context_matrix).max(axis=1)
@@ -85,7 +88,7 @@ class Contextualisation:
 
 
 def get_ordered_distance_matrix(context_list):
-    """Get context matrix from context lis"""
+    """Get context matrix from context list"""
     size = len(context_list)
 
     a = np.abs(np.arange(-size, size))

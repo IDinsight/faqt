@@ -2,8 +2,8 @@ from faqt.model.faq_matching.keyed_vectors_scoring import (
     StepwiseKeyedVectorsScorer,
     WMDScorer,
 )
-from faqt.model.faq_matching.contextualisation import (
-    Contextualisation,
+from faqt.model.faq_matching.contextualization import (
+    Contextualization,
     get_ordered_distance_matrix,
 )
 from faqt.model.faq_matching.bert import QuestionAnswerBERTScorer
