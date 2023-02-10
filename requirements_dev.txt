@@ -7,4 +7,6 @@ coverage>=6.3.2
 smart-open[s3]>=5.0.0
 sphinx==4.5.0
 sphinx-material==0.0.35
+furo==2022.12.7
 numpydoc==1.2
+

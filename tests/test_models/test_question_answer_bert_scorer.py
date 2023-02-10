@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -27,13 +28,17 @@ class TestQuestionAnswerBERTScorer:
     test_data = load_test_data()
 
     @pytest.fixture
-    def bert_scorer(self):
+    def bert_model_path(self):
         folder = "sequence_classification_models"
         model_folder = "huggingface_model"
         full_path = Path(__file__).parents[1] / "data" / folder / model_folder
         path = str(full_path)
 
-        return QuestionAnswerBERTScorer(model_path=path)
+        return path
+
+    @pytest.fixture
+    def bert_scorer(self, bert_model_path):
+        return QuestionAnswerBERTScorer(model_path=bert_model_path)
 
     @pytest.fixture(scope="class")
     def contents(self):
@@ -44,6 +49,42 @@ class TestQuestionAnswerBERTScorer:
 
         contents_data = yaml_dict["tags_refresh_data"]
         return [d["content_to_send"] for d in contents_data]
+
+    def test_importing_faqt_without_optional_package_succeeds(self):
+        # Make transformers library not available
+        original_value = sys.modules["transformers"]
+        sys.modules["transformers"] = None
+
+        try:
+            import faqt
+        except ImportError:
+            pytest.fail(
+                "Unexpected ImportError: faqt import should work even if the optional library `transformers` is not installed."
+            )
+
+        sys.modules["transformers"] = original_value
+
+    def test_import_error_raised_if_optional_package_unavailable(self, bert_model_path):
+        # Patch the module-level global variable that's set during import
+        import faqt
+
+        faqt.model.faq_matching.bert._has_bert_dependencies = False
+
+        with pytest.raises(
+            ImportError,
+            match=r"Missing required dependencies from `requirements_extended.txt`. ",
+        ):
+            faqt.model.faq_matching.bert.QuestionAnswerBERTScorer(
+                model_path=bert_model_path
+            )
+
+        # Set correct values at the end of test
+        try:
+            import transformers
+        except ImportError:
+            faqt.model.faq_matching.bert._has_bert_dependencies = False
+        else:
+            faqt.model.faq_matching.bert._has_bert_dependencies = True
 
     def test_scorer_model_is_loaded(self, bert_scorer):
         assert isinstance(bert_scorer.model, Pipeline)
