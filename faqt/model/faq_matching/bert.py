@@ -9,28 +9,29 @@ else:
 
 
 class QuestionAnswerBERTScorer:
-    """FAQ matching model based on (question, answer) relevance scoring using BERT"""
+    """
+    FAQ matching model based on (question, answer) relevance scoring using BERT
+
+    Parameters
+    ----------
+    model_path : str
+        Path to HuggingFace transformers model directory. If trained
+        locally, it should be the directory passed to
+        ``transformers.Trainer.save_model()`` function
+        or ``transformers.Model.save_pretrained()`` function.
+    batch_size : int, default=1
+        Batch size for predictions
+
+
+    Raises
+    ------
+    ImportError
+        If transformers library is not installed. Install faqt using
+        ``pip install faqt[extended]`` to install all dependencies for this class.
+    """
 
     def __init__(self, model_path, batch_size=1):
-        """
-        Initialize.
-
-        Parameters
-        ----------
-        model_path : str
-            Path to HuggingFace transformers model directory. If trained
-            locally, it should be the directory passed to
-            `transformers.Trainer.save_model()` function
-            or `transformers.Model.save_pretrained()` function.
-        batch_size : int, default=1
-            Batch size for predictions
-
-
-        Raises
-        ------
-        ImportError if transformers library is not installed. Install faqt using
-        `pip install faqt[extended]` to install all dependencies for this class.
-        """
+        """Initialize"""
         if not _has_bert_dependencies:
             raise ImportError(
                 f"Missing required dependencies from `requirements_extended.txt`. "
@@ -50,7 +51,7 @@ class QuestionAnswerBERTScorer:
     @staticmethod
     def _create_safe_pipeline(tokenizer, classifier, batch_size):
         """Workaround to ensure truncation during tokenization because the
-        `.from_pretrained` method doesn't recover the truncation parameters.
+        ``.from_pretrained`` method doesn't recover the truncation parameters.
         See https://stackoverflow.com/a/71243383/7664921, but we adapt the
         preprocess function for text_classification task"""
         pipe = pipeline(
@@ -116,7 +117,7 @@ class QuestionAnswerBERTScorer:
         Returns
         -------
         return_dict : dict
-            `return_dict["overall_scores"]` : Score for each content in `self.contents`
+            ``return_dict["overall_scores"]`` : Score for each content in `self.contents`
         """
         if not self.is_set:
             raise ValueError(

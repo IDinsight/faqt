@@ -5,41 +5,53 @@
 
 Welcome to FAQT's documentation!
 ================================
-**FAQT** is a Python library to match text to a set of keywords.
+**FAQT** gives you a suite of approaches for matching text to existing content (like FAQs) or detecting urgency in a text in low and high resource settings.
 
-How it works
-------------
-Say you have 3 sets of keyword or tags, each representing some predefined content or a topic:
+FAQT's FAQ Scorers score text (e.g. user message) against a list of predetermined
+contents (e.g. FAQs) based on their relevance to the text.
 
-* 1: {"river", "lake", "mountains"}
-* 2: {"movie", "dinner", "walk"}
-* 3: {"aircraft", "terminal", "boarding"}
+The Scorer class needs the contents and some pre-trained NLP model to do the match
+scoring. It outputs the match score for each of the content.
 
-And you want to see how well the messages "i went camping in the woods last weekend" matches the tags.
+.. image:: _static/faqt_readme-how_it_works-faq_matching.drawio.png
+   :width: 600
+   :alt: FAQT match scoring diagram
 
-FAQT will return similarity scores for the message against each set of tags:
-:code:`{1: 0.7, 2: 0.3, 3: 0.4}`.
+The Urgency Detector accepts a raw text as input and
+outputs the urgency score (between 0.0 and 1.0) or an urgency label (0.0 for not urgent,
+1.0 for urgent.)
+
+.. image:: _static/faqt_readme_how_it_works_urgency_detection.png
+   :width: 600
+   :alt: FAQT urgency detection diagram
 
 Check out the :doc:`usage` section for further information.
 
 .. note::
    This project is under active development and API may change substantially.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
 
+Usage
+--------
+.. toctree::
+   :maxdepth: 4
+
+   usage
 
 Contents
 --------
 .. toctree::
-    usage
-    preprocessing
-    api
+   :maxdepth: 4
+
+   faqt
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
+
+
+
+
 

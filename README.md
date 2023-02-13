@@ -13,8 +13,7 @@ contents (e.g. FAQs) based on their relevance to the text.
 The Scorer class needs the contents and some pre-trained NLP model to do the match
 scoring. It outputs the match score for each of the content.
 
-![FAQT match scoring
-diagram](docs/readme/images/faqt_readme-how_it_works-faq_matching.drawio.png)
+![FAQT match scoring diagram](docs/readme/images/faqt_readme-how_it_works-faq_matching.drawio.png)
 
 * For Scorers that use word embeddings, scoring is based on the distances between
   words or sets of words from the message and the contents.
