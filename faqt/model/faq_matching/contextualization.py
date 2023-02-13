@@ -51,10 +51,10 @@ class Contextualization:
         return self.binarizer.fit_transform(content_contexts)
 
     def _message_context_vector(self, message_context):
-        """Get message content as vector"""
+        """Get message context as vector"""
 
         if len(message_context) < 1:
-            raise ValueError("Inbound content cannot be empty")
+            raise ValueError("Message context cannot be empty")
 
         message_vector = [
             self.contexts.index(value)
