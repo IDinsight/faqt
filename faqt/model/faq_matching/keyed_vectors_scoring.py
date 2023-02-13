@@ -149,7 +149,9 @@ class KeyedVectorsScorerBase(ABC):
             )
 
         if weights:
-            warn("Weights have been added, content weights will be ignored. ")
+            warn(
+                "`weights` parameter is provided. This will override the `content_weights` set during intialization. "
+            )
 
         message_tokens = self.tokenizer(message)
         message_vectors, spell_corrected = self.model_search(message_tokens)

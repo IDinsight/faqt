@@ -10,7 +10,7 @@ from faqt.model.faq_matching.contextualization import get_ordered_distance_matri
 
 
 @pytest.fixture(scope="module")
-def contents():
+def default_contents():
     full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
     with open(full_path) as file:
         yaml_dict = yaml.full_load(file)
@@ -20,7 +20,7 @@ def contents():
 
 
 @pytest.fixture(scope="module")
-def distance_matrix():
+def default_distance_matrix():
 
     full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
     with open(full_path) as file:
@@ -35,11 +35,22 @@ def distance_matrix():
     return distance_matrix
 
 
+@pytest.fixture(scope="module")
+def default_contents_id():
+    full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
+    with open(full_path) as file:
+        yaml_dict = yaml.full_load(file)
+
+    tagsets_data = yaml_dict["tags_refresh_data"]
+    return [tagset_data["id"] for tagset_data in tagsets_data]
+
+
 class TestContextualization:
     @pytest.mark.parametrize(
-        "content,context",
+        "content_id,content,context",
         [
             (
+                ["content_1", "content_2", "content_3"],
                 [
                     ["word", "music"],
                     ["holiday", "food"],
@@ -48,6 +59,7 @@ class TestContextualization:
                 ["word", "music", "holiday", "food"],
             ),
             (
+                ["content_1", "content_2", "content_3", "content_4"],
                 [
                     ["jump", "run"],
                     ["shoot", "punch"],
@@ -58,31 +70,34 @@ class TestContextualization:
             ),
         ],
     )
-    def test_context_matrix_shape(self, content, context):
+    def test_context_matrix_shape(self, content_id, content, context):
         distance_matrix = get_ordered_distance_matrix(context_list=context)
         contextualizator = Contextualization(
-            contents=content, distance_matrix=distance_matrix
+            contents_id=content_id,
+            contents_context=content,
+            distance_matrix=distance_matrix,
         )
         assert contextualizator._context_matrix.shape == (
             len(content),
             len(distance_matrix.columns),
         )
 
-    @pytest.mark.parametrize(
-        "distance_matrix",
-        [(pd.DataFrame())],
-    )
-    def test_empty_distance_matrix_return_error(self, contents, distance_matrix):
-
+    def test_empty_distance_matrix_return_error(
+        self, default_contents, default_contents_id
+    ):
+        distance_matrix = pd.DataFrame()
         with pytest.raises(ValueError):
             contextualizator = Contextualization(
-                contents=contents, distance_matrix=distance_matrix
+                contents_id=default_contents_id,
+                contents_context=default_contents,
+                distance_matrix=distance_matrix,
             )
 
     @pytest.mark.parametrize(
-        "content,context",
+        "content_id,content,context",
         [
             (
+                ["content_1", "content_2", "content_3"],
                 [
                     ["word", "music"],
                     ["holiday", "food"],
@@ -91,6 +106,7 @@ class TestContextualization:
                 ["word", "music", "holiday", "food"],
             ),
             (
+                ["content_1", "content_2", "content_3", "content_4"],
                 [
                     ["jump", "run"],
                     ["shoot", "punch"],
@@ -101,31 +117,33 @@ class TestContextualization:
             ),
         ],
     )
-    def test_context_matrix_only_have_0_and_1(self, content, context):
+    def test_context_matrix_only_have_0_and_1(self, content_id, content, context):
         distance_matrix = get_ordered_distance_matrix(context_list=context)
         contextualizator = Contextualization(
-            contents=content, distance_matrix=distance_matrix
+            contents_id=content_id,
+            contents_context=content,
+            distance_matrix=distance_matrix,
         )
-        assert sum(set(contextualizator._context_matrix.flatten())) == 1
+        unique_values = set(contextualizator._context_matrix.flatten())
+        assert len(unique_values - {0, 1}) == 0
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
-    def test_empty_contents_return_empty_list(self, distance_matrix):
+    def test_empty_contents_return_empty_list(self, default_distance_matrix):
         message_context = ["music"]
         contextualizator = Contextualization(
-            contents=[], distance_matrix=distance_matrix
+            contents_id=[], contents_context=[], distance_matrix=default_distance_matrix
         )
         weights = contextualizator.get_context_weights(message_context)
         assert len(weights) == 0
 
-    @pytest.mark.parametrize(
-        "message_context",
-        [([])],
-    )
-    def test_empty_content_throws_error(
-        self, contents, distance_matrix, message_context
+    def test_empty_message_context_throws_error(
+        self, default_contents_id, default_contents, default_distance_matrix
     ):
+        message_context = []
         contextualizator = Contextualization(
-            contents=contents, distance_matrix=distance_matrix
+            contents_id=default_contents_id,
+            contents_context=default_contents,
+            distance_matrix=default_distance_matrix,
         )
         with pytest.raises(ValueError):
             weights = contextualizator.get_context_weights(message_context)
@@ -138,10 +156,16 @@ class TestContextualization:
         ],
     )
     def test_unknown_content_returns_error(
-        self, contents, distance_matrix, message_context
+        self,
+        default_contents_id,
+        default_contents,
+        default_distance_matrix,
+        message_context,
     ):
         contextualizator = Contextualization(
-            contents=contents, distance_matrix=distance_matrix
+            contents_id=default_contents_id,
+            contents_context=default_contents,
+            distance_matrix=default_distance_matrix,
         )
         with pytest.raises(ValueError):
             weights = contextualizator.get_context_weights(message_context)
@@ -153,13 +177,21 @@ class TestContextualization:
             (["holiday", "food"]),
         ],
     )
-    def test_length_weights_vector(self, contents, distance_matrix, message_context):
+    def test_length_weights_vector(
+        self,
+        default_contents_id,
+        default_contents,
+        default_distance_matrix,
+        message_context,
+    ):
 
         contextualizator = Contextualization(
-            contents=contents, distance_matrix=distance_matrix
+            contents_id=default_contents_id,
+            contents_context=default_contents,
+            distance_matrix=default_distance_matrix,
         )
         weights = contextualizator.get_context_weights(message_context)
-        assert len(weights) == len(contents)
+        assert len(weights.values()) == len(default_contents)
 
     @pytest.mark.parametrize(
         "message_context",
@@ -168,12 +200,20 @@ class TestContextualization:
             (["holiday", "food"]),
         ],
     )
-    def test_weights_are_int_or_float(self, contents, distance_matrix, message_context):
+    def test_weights_are_int_or_float(
+        self,
+        default_contents_id,
+        default_contents,
+        default_distance_matrix,
+        message_context,
+    ):
         contextualizator = Contextualization(
-            contents=contents, distance_matrix=distance_matrix
+            contents_id=default_contents_id,
+            contents_context=default_contents,
+            distance_matrix=default_distance_matrix,
         )
         weights = contextualizator.get_context_weights(message_context)
-        assert weights.dtype in (float, int)
+        assert np.array(list(weights.values())).dtype in (float, int)
 
     @pytest.mark.parametrize(
         "context_list",

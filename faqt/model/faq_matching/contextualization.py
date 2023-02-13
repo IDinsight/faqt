@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 from warnings import warn
 
+b = 0.1
+
 
 class Contextualization:
     """
@@ -13,20 +15,23 @@ class Contextualization:
     This weight is calculated using some contexts obtained from each content and the context of the message.
 
 
-        Parameters
-        ----------
-        faqs: List[dict]
-            List of faqs
+    Parameters
+    ----------
+    contents_contexts: List[List[str]]
+        List of contents contexts.
+    contents_id: List[str]
+        List of contents id
 
-        distance_matrix :pandas.DataFrame
-            A matrix as form of a pandas dataframe with the contexts list as columns and index. and distance between each context as value.
+    distance_matrix :pandas.DataFrame
+        A square matrix in the form of a pandas dataframe with the contexts list as
+        both columns and index and distance between each pair of contexts as values.
 
 
     """
 
-    def __init__(self, contents, distance_matrix):
+    def __init__(self, contents_id, contents_context, distance_matrix):
         """Define constructor"""
-        if len(contents) < 1:
+        if len(contents_context) < 1:
             warn("No faqs detected, No weight will be calculated.")
 
         if len(distance_matrix) < 1:
@@ -34,11 +39,12 @@ class Contextualization:
                 "Empty dataframe, please provided a distance matrix as a dataframe"
             )
         self.contexts = list(distance_matrix.columns)
+        self.contents_id = contents_id
         self.binarizer = MultiLabelBinarizer(classes=self.contexts)
-        self._context_matrix = self._get_context_matrix(contents)
+        self._context_matrix = self._get_context_matrix(contents_context)
         self._distance_matrix = distance_matrix.values
 
-        self.b = 0.1
+        self.b = b
 
     def _get_context_matrix(self, content_contexts):
         """Get context matrix from contents"""
@@ -72,7 +78,10 @@ class Contextualization:
         message_context :List[str]
             list of contexts
 
-
+        Returns
+        -------
+        weights : list of str
+            List of tokens, with entities connected.
         """
 
         def rbf(b, d):
@@ -84,7 +93,11 @@ class Contextualization:
 
         rbf_weights = rbf(self.b, D)
         weights = (rbf_weights * self._context_matrix).max(axis=1)
-        return weights
+        content_weights = {
+            content_id: weight
+            for (content_id, weight) in zip(self.contents_id, weights)
+        }
+        return content_weights
 
 
 def get_ordered_distance_matrix(context_list):
