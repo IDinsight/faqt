@@ -3,55 +3,63 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 from warnings import warn
 
-b = 0.1
+VARIANCE = 0.1
 
 
 class Contextualization:
     """
-
     Contextualization class to use  context information to calculate weights.
 
     Contextualization can be used to calculate weights to be attributed to each content while scoring.
     This weight is calculated using some contexts obtained from each content and the context of the message.
 
-
     Parameters
     ----------
-    contents_contexts: List[List[str]]
-        List of contents contexts.
-    contents_id: List[str]
-        List of contents id
-
+    contents_contexts: Dict[str, List[str]]
+        Dictionnary of contents with the contents ID as key and the contexts list as value.
     distance_matrix :pandas.DataFrame
         A square matrix in the form of a pandas dataframe with the contexts list as
         both columns and index and distance between each pair of contexts as values.
-
+    variance: float
+        The variance parameter for the kernelization using the radial basis function.
 
     """
 
-    def __init__(self, contents_id, contents_context, distance_matrix):
+    def __init__(self, contents_dict, distance_matrix, variance=VARIANCE):
         """Define constructor"""
-        if len(contents_context) < 1:
-            warn("No faqs detected, No weight will be calculated.")
 
-        if len(distance_matrix) < 1:
-            raise ValueError(
-                "Empty dataframe, please provided a distance matrix as a dataframe"
-            )
+        self.check_inputs(contents_dict, distance_matrix)
         self.contexts = list(distance_matrix.columns)
-        self.contents_id = contents_id
+        self.contents_id = contents_dict.keys()
         self.binarizer = MultiLabelBinarizer(classes=self.contexts)
-        self._context_matrix = self._get_context_matrix(contents_context)
+        self._context_matrix = self._get_context_matrix(contents_dict.values())
         self._distance_matrix = distance_matrix.values
 
-        self.b = b
+        self.variance = variance
+
+    def check_inputs(self, contents_dict, distance_matrix):
+        assert (
+            len(distance_matrix) > 0
+        ), "Empty dataframe, please provided a distance matrix as a dataframe"
+        assert (
+            len(distance_matrix.shape) == 2
+            and distance_matrix.shape[0] == distance_matrix.shape[1]
+        ), "Distance matrix is not a square matrix"
+        if len(contents_dict) < 1:
+            warn("No faqs detected, No weight will be calculated.")
+        unique_values = set(np.array(contents_dict.values()).flatten())
+        invalid = [
+            value for value in unique_values if value not in distance_matrix.columns
+        ]
+        if len(invalid) == 0:
+            raise ValueError(f"Unknown content contexts : {str(invalid)} ")
 
     def _get_context_matrix(self, content_contexts):
-        """Get context matrix from contents"""
+        """Convert contexts provides a list of strings into a binary vector representation"""
         return self.binarizer.fit_transform(content_contexts)
 
     def _message_context_vector(self, message_context):
-        """Get message context as vector"""
+        """Convert message context list into vector of indexes as they appear in the content context list"""
 
         if len(message_context) < 1:
             raise ValueError("Message context cannot be empty")
@@ -84,14 +92,14 @@ class Contextualization:
             List of tokens, with entities connected.
         """
 
-        def rbf(b, d):
-            return np.exp(-((b * d) ** 2))
+        def rbf(variance, vectors):
+            return np.exp(-((variance * vectors) ** 2))
 
         message_vector = self._message_context_vector(message_context)
 
-        D = self._distance_matrix[message_vector].min(axis=0)
+        distance_vectors = self._distance_matrix[message_vector].min(axis=0)
 
-        rbf_weights = rbf(self.b, D)
+        rbf_weights = rbf(self.variance, distance_vectors)
         weights = (rbf_weights * self._context_matrix).max(axis=1)
         content_weights = {
             content_id: weight
@@ -101,7 +109,7 @@ class Contextualization:
 
 
 def get_ordered_distance_matrix(context_list):
-    """Get context matrix from context list"""
+    """Create a distance matrix by asssuming that the distance between each adjacent context is 1"""
     size = len(context_list)
 
     a = np.abs(np.arange(-size, size))
