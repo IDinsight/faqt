@@ -47,15 +47,17 @@ class Contextualization:
         ), "Distance matrix is not a square matrix"
         if len(contents_dict) < 1:
             warn("No faqs detected, No weight will be calculated.")
-        unique_values = set(np.array(contents_dict.values()).flatten())
-        invalid = [
-            value for value in unique_values if value not in distance_matrix.columns
-        ]
-        if len(invalid) == 0:
-            raise ValueError(f"Unknown content contexts : {str(invalid)} ")
+        else:
+            flattened_contexts = np.hstack(list(contents_dict.values()))
+            unique_values = np.unique(flattened_contexts)
+            invalid = np.setdiff1d(unique_values, distance_matrix.columns)
+            if len(invalid) > 0:
+                raise ValueError(
+                    f"contexts {str(invalid)} cannot be found in 'distance_matrix'"
+                )
 
     def _get_context_matrix(self, content_contexts):
-        """Convert contexts provides a list of strings into a binary vector representation"""
+        """Convert contexts provided as list of strings into a binary vector representation"""
         return self.binarizer.fit_transform(content_contexts)
 
     def _message_context_vector(self, message_context):
@@ -116,7 +118,7 @@ def get_ordered_distance_matrix(context_list):
     distance_matrix = np.empty((size, size))
 
     for i in np.arange(size):
-        distance_matrix[i] = a[size - i : size - i + size]
+        distance_matrix[i] = a[size - i : 2 * size - i]
     distance_matrix = pd.DataFrame(
         distance_matrix, columns=context_list, index=context_list, dtype=int
     )

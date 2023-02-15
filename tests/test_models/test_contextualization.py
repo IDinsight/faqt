@@ -52,19 +52,19 @@ class TestContextualization:
             (
                 {
                     0: ["word", "music"],
-                    1: ["holiday", "food"],
-                    2: ["holiday", "music"],
+                    1: ["beat", "album"],
+                    2: ["beat", "music"],
                 },
-                ["word", "music", "holiday", "food"],
+                ["word", "beat", "music", "album"],
             ),
             (
                 {
                     0: ["jump", "run"],
-                    1: ["shoot", "punch"],
-                    2: ["jump", "sprint", "shoot"],
-                    3: ["run", "punch", "sprint", "shoot", "jump"],
+                    1: ["shoot", "score"],
+                    2: ["sprint", "jump", "shoot"],
+                    3: ["run", "sprint", "jump", "shoot", "score"],
                 },
-                ["run", "punch", "sprint", "shoot", "jump"],
+                ["run", "sprint", "jump", "shoot", "score"],
             ),
         ],
     )
@@ -93,19 +93,19 @@ class TestContextualization:
             (
                 {
                     0: ["word", "music"],
-                    1: ["holiday", "food"],
-                    2: ["holiday", "music"],
+                    1: ["beat", "album"],
+                    2: ["beat", "music"],
                 },
-                ["word", "music", "holiday", "food"],
+                ["word", "beat", "music", "album"],
             ),
             (
                 {
                     0: ["jump", "run"],
-                    1: ["shoot", "punch"],
-                    2: ["jump", "sprint", "shoot"],
-                    3: ["run", "punch", "sprint", "shoot", "jump"],
+                    1: ["shoot", "score"],
+                    2: ["sprint", "jump", "shoot"],
+                    3: ["run", "sprint", "jump", "shoot", "score"],
                 },
-                ["run", "punch", "sprint", "shoot", "jump"],
+                ["run", "sprint", "jump", "shoot", "score"],
             ),
         ],
     )
@@ -120,7 +120,7 @@ class TestContextualization:
 
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_empty_contents_return_empty_list(self, default_distance_matrix):
-        message_context = ["music"]
+        message_context = ["code"]
         contextualizer = Contextualization(
             contents_dict=dict(), distance_matrix=default_distance_matrix
         )
@@ -141,8 +141,8 @@ class TestContextualization:
     @pytest.mark.parametrize(
         "message_context",
         [
-            (["word", "music", "appreciation"]),
-            (["holiday", "food", "word", "music", "musik"]),
+            (["design", "code ", "appreciation"]),
+            (["design", "test", "deploy", "maintain", "musik"]),
         ],
     )
     def test_unknown_content_returns_error(
@@ -161,8 +161,8 @@ class TestContextualization:
     @pytest.mark.parametrize(
         "message_context",
         [
-            (["word", "music"]),
-            (["holiday", "food"]),
+            (["deploy", "maintain"]),
+            (["design", "deploy"]),
         ],
     )
     def test_length_weights_vector(
@@ -182,8 +182,8 @@ class TestContextualization:
     @pytest.mark.parametrize(
         "message_context",
         [
-            (["word", "music"]),
-            (["holiday", "food"]),
+            (["deploy", "maintain"]),
+            (["design", "deploy"]),
         ],
     )
     def test_weights_are_int_or_float(
