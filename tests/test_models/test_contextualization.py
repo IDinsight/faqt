@@ -118,6 +118,36 @@ class TestContextualization:
         unique_values = set(contextualizer._context_matrix.flatten())
         assert len(unique_values - {0, 1}) == 0
 
+    @pytest.mark.parametrize(
+        "contents_dict,context",
+        [
+            (
+                {
+                    0: ["word", "music"],
+                    1: ["beat", "album"],
+                    2: ["beat", "music", "single"],
+                },
+                ["word", "beat", "music", "album"],
+            ),
+            (
+                {
+                    0: ["jump", "run"],
+                    1: ["shoot", "score"],
+                    2: ["sprint", "jump", "shoot", "danse"],
+                    3: ["run", "sprint", "jump", "shoot", "score"],
+                },
+                ["run", "sprint", "jump", "shoot", "score"],
+            ),
+        ],
+    )
+    def test_unknown_content_context_return_error(self, contents_dict, context):
+        distance_matrix = get_ordered_distance_matrix(context_list=context)
+        with pytest.raises(ValueError):
+            contextualizer = Contextualization(
+                contents_dict=contents_dict,
+                distance_matrix=distance_matrix,
+            )
+
     @pytest.mark.filterwarnings("ignore::UserWarning")
     def test_empty_contents_return_empty_list(self, default_distance_matrix):
         message_context = ["code"]
@@ -145,7 +175,7 @@ class TestContextualization:
             (["design", "test", "deploy", "maintain", "musik"]),
         ],
     )
-    def test_unknown_content_returns_error(
+    def test_unknown_message_context_returns_error(
         self,
         default_content_dict,
         default_distance_matrix,
