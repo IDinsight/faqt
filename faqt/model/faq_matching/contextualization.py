@@ -32,7 +32,7 @@ class Contextualization:
         self.contexts = list(distance_matrix.columns)
         self.contents_id = contents_dict.keys()
         self.binarizer = MultiLabelBinarizer(classes=self.contexts)
-        self._context_matrix = self._get_context_matrix(contents_dict.values())
+        self._context_matrix = self._get_context_matrix(list(contents_dict.values()))
         self._distance_matrix = distance_matrix.values
 
         self.variance = variance
