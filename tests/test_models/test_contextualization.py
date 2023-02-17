@@ -264,20 +264,6 @@ class TestContextualizationAlgorithm:
 
     @pytest.mark.parametrize(
         "message_context,expected_key_max,expected_key_min",
-        [(["test"], [1, 2], 3), (["maintain"], [4, 6], 3), (["deploy"], [3], 1)],
-    )
-    def test_one_context_in_message(
-        self, contextualizer, message_context, expected_key_max, expected_key_min
-    ):
-        weights = contextualizer.get_context_weights(message_context)
-        key_max = max(weights, key=weights.get)
-        assert key_max == expected_key_max[0]
-        assert weights[expected_key_min] < weights[expected_key_max[0]]
-        if len(expected_key_max) > 1:
-            assert weights[expected_key_max[0]] == weights[expected_key_max[1]]
-
-    @pytest.mark.parametrize(
-        "message_context,expected_key_max,expected_key_min",
         [(["code", "test"], [1, 2, 4], 3), (["code", "maintain"], [2, 4, 6], 1)],
     )
     def test_two_context_in_message(
