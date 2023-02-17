@@ -22,15 +22,12 @@ def default_content_dict():
 @pytest.fixture(scope="module")
 def default_distance_matrix():
 
-    full_path = Path(__file__).parents[1] / "data/tag_test_data.yaml"
+    full_path = Path(__file__).parents[1] / "data/contexts_data.yaml"
     with open(full_path) as file:
         yaml_dict = yaml.full_load(file)
 
-    tagsets_data = yaml_dict["tags_refresh_data"]
-    contexts = set(
-        [tag for tagset_data in tagsets_data for tag in tagset_data["context"]]
-    )
-    contexts = list(contexts)
+    contexts = yaml_dict["contexts"]
+
     distance_matrix = get_ordered_distance_matrix(contexts)
     return distance_matrix
 
@@ -240,3 +237,88 @@ class TestContextualization:
         distance_matrix = get_ordered_distance_matrix(context_list=context_list)
         size = len(context_list)
         assert distance_matrix.shape == (size, size)
+
+
+class TestContextualizationAlgorithm:
+    @pytest.fixture(scope="class")
+    def contextualizer(self, default_distance_matrix, default_content_dict):
+        return Contextualization(
+            contents_dict=default_content_dict, distance_matrix=default_distance_matrix
+        )
+
+    @pytest.fixture(scope="class")
+    def contextualizer_1(self, default_distance_matrix, default_content_dict):
+        return Contextualization(
+            contents_dict=default_content_dict,
+            distance_matrix=default_distance_matrix,
+            variance=1,
+        )
+
+    @pytest.fixture(scope="class")
+    def contextualizer_10(self, default_distance_matrix, default_content_dict):
+        return Contextualization(
+            contents_dict=default_content_dict,
+            distance_matrix=default_distance_matrix,
+            variance=10,
+        )
+
+    @pytest.mark.parametrize(
+        "message_context,expected_key_max,expected_key_min",
+        [(["test"], [1, 2], 3), (["maintain"], [4, 6], 3), (["deploy"], [3], 1)],
+    )
+    def test_one_context_in_message(
+        self, contextualizer, message_context, expected_key_max, expected_key_min
+    ):
+        weights = contextualizer.get_context_weights(message_context)
+        key_max = max(weights, key=weights.get)
+        assert key_max == expected_key_max[0]
+        assert weights[expected_key_min] < weights[expected_key_max[0]]
+        if len(expected_key_max) > 1:
+            assert weights[expected_key_max[0]] == weights[expected_key_max[1]]
+
+    @pytest.mark.parametrize(
+        "message_context,expected_key_max,expected_key_min",
+        [(["code", "test"], [1, 2, 4], 3), (["code", "maintain"], [2, 4, 6], 1)],
+    )
+    def test_two_context_in_message(
+        self, contextualizer, message_context, expected_key_max, expected_key_min
+    ):
+        weights = contextualizer.get_context_weights(message_context)
+        key_max = max(weights, key=weights.get)
+        assert key_max == expected_key_max[0]
+        assert weights[expected_key_min] < weights[expected_key_max[0]]
+        if len(expected_key_max) > 1:
+            assert (
+                weights[expected_key_max[0]]
+                == weights[expected_key_max[1]]
+                == weights[expected_key_max[2]]
+            )
+
+    @pytest.mark.parametrize(
+        "message_context,expected_key_min",
+        [(["test"], 3), (["maintain"], 3), (["deploy"], 1)],
+    )
+    def test_contextualisation_variance(
+        self,
+        contextualizer,
+        contextualizer_1,
+        contextualizer_10,
+        message_context,
+        expected_key_min,
+    ):
+        weights_0_1 = contextualizer.get_context_weights(message_context)
+        weights_1 = contextualizer_1.get_context_weights(message_context)
+        weights_10 = contextualizer_10.get_context_weights(message_context)
+        print(weights_0_1)
+        print(weights_1)
+        print(weights_10)
+        assert (
+            max(weights_0_1, key=weights_0_1.get)
+            == max(weights_1, key=weights_1.get)
+            == max(weights_10, key=weights_10.get)
+        )
+        assert (
+            weights_10[expected_key_min]
+            < weights_1[expected_key_min]
+            < weights_0_1[expected_key_min]
+        )

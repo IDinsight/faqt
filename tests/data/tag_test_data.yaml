@@ -19,7 +19,7 @@ tags_refresh_data:
   - id: 3
     tags: ["rock", "lake", "mountain", "sky"]
     content_to_send: "Let's do it. But outside."
-    context: ["design","code"]
+    context: ["deploy"]
     title: "nature"
     example_questions:
       - "should we go climbing?"
@@ -28,7 +28,7 @@ tags_refresh_data:
   - id: 4
     tags: ["trace", "vector", "length", "angle"]
     content_to_send: "Whenever you can, count"
-    context: ["code","deploy"]
+    context: ["code","maintain"]
     title: "math"
     example_questions:
       - "How can I know the cardinality of everything"
@@ -48,7 +48,7 @@ tags_refresh_data:
     content_to_send: >
       Nothing would be more tiresome than eating and drinking
       if God had not made them a pleasure as well as a necessity.
-    context: ["deploy","maintain"]
+    context: ["test","code","maintain"]
     title: "life"
     example_questions:
       - "Do you like to eat and drink"
