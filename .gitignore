@@ -1,8 +1,8 @@
 # data folder
 data/
 !tests/data
-!tests/data/*.yaml
 tests/data/*
+!tests/data/*.yaml
 # google new binary
 GoogleNews-vectors-negative300-prenorm.bin
 

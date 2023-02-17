@@ -22,11 +22,11 @@ def default_content_dict():
 @pytest.fixture(scope="module")
 def default_distance_matrix():
 
-    full_path = Path(__file__).parents[1] / "data/contexts_data.yaml"
+    full_path = Path(__file__).parents[1] / "data/contextualization.yaml"
     with open(full_path) as file:
         yaml_dict = yaml.full_load(file)
 
-    contexts = yaml_dict["contexts"]
+    contexts = yaml_dict["contexts_list"]
 
     distance_matrix = get_ordered_distance_matrix(contexts)
     return distance_matrix
@@ -295,9 +295,6 @@ class TestContextualizationAlgorithm:
         weights_0_1 = contextualizer.get_context_weights(message_context)
         weights_1 = contextualizer_1.get_context_weights(message_context)
         weights_10 = contextualizer_10.get_context_weights(message_context)
-        print(weights_0_1)
-        print(weights_1)
-        print(weights_10)
         assert (
             max(weights_0_1, key=weights_0_1.get)
             == max(weights_1, key=weights_1.get)
