@@ -114,7 +114,9 @@ class KeyedVectorsScorerBase(ABC):
         optionally saves word-vectors to `self.content_vectors`."""
         raise NotImplementedError
 
-    def score_contents(self, message, return_spell_corrected=False, **kwargs):
+    def score_contents(
+        self, message, return_spell_corrected=False, weights=None, **kwargs
+    ):
         """
         Scores contents and applies weighting if `self.weighting_method` is
         not None
@@ -123,6 +125,9 @@ class KeyedVectorsScorerBase(ABC):
         ----------
         message : str
         return_spell_corrected : bool, default=False
+        weights: List[str] or None
+            Weight of each FAQ, will override content_weights if added
+
         kwargs :
             additional keyword arguments to pass.
             e.g. for StepwiseKeyedVectorsScorer, `return_tag_scores=True` will
@@ -144,6 +149,11 @@ class KeyedVectorsScorerBase(ABC):
                 "Contents have not been set. Set contents with " "`self.set_contents()`"
             )
 
+        if weights is not None and self.content_weights is not None:
+            warn(
+                "`weights` parameter is provided. This will override the `content_weights` set during intialization. "
+            )
+
         message_tokens = self.tokenizer(message)
         message_vectors, spell_corrected = self.model_search(message_tokens)
 
@@ -159,9 +169,15 @@ class KeyedVectorsScorerBase(ABC):
         result = self._score_contents(message_vectors, spell_corrected, **kwargs)
 
         if self.weighting_method is not None and self.content_weights is not None:
+            if weights:
+                content_weights = weights
+            else:
+                content_weights = self.content_weights
+
             weighted_scores = self.weighting_method(
-                result["overall_scores"], self.content_weights, **self.weighting_kwargs
+                result["overall_scores"], content_weights, **self.weighting_kwargs
             )
+
             result["overall_scores"] = weighted_scores
 
         if return_spell_corrected:

@@ -6,6 +6,7 @@ from .model import (
     QuestionAnswerBERTScorer,
     StepwiseKeyedVectorsScorer,
     WMDScorer,
+    Contextualization,
 )
 from .preprocessing import (
     preprocess_text_for_keyword_rule,
