@@ -107,6 +107,18 @@ class KeyedVectorsScorerBase(ABC):
         self.content_vectors = None
         self.content_weights = None
 
+    def set_glossary(self, glossary):
+        """Set glossary"""
+        self.glossary = glossary
+
+    def set_tokenizer(self, tokenizer):
+        """Set tokenizer"""
+        self.tokenizer = tokenizer
+
+    def set_tag_guiding_typos(self, tag_guiding_typos):
+        """Set tag guiding typos"""
+        self.tags_guiding_typos = tag_guiding_typos
+
     @abstractmethod
     def set_contents(self, contents, weights=None):
         """Sets content: preprocesses `contents` and `weights` as necessary
@@ -362,6 +374,18 @@ class StepwiseKeyedVectorsScorer(KeyedVectorsScorerBase):
         self.score_reduction_method = score_reduction_method
         self.score_reduction_kwargs = score_reduction_kwargs or {}
 
+    def set_glossary(self, glossary):
+        """Set glossary"""
+        super(StepwiseKeyedVectorsScorer, self).set_glossary(glossary)
+
+    def set_tokenizer(self, tokenizer):
+        """Set tokenizer"""
+        super(StepwiseKeyedVectorsScorer, self).set_tokenizer(tokenizer)
+
+    def set_tag_guiding_typos(self, tag_guiding_typos):
+        """Set tag guiding typos"""
+        super(StepwiseKeyedVectorsScorer, self).set_tag_guiding_typos(tag_guiding_typos)
+
     def set_contents(self, contents, weights=None):
         """
         Set the contents that messages should be matched against.
@@ -474,6 +498,18 @@ class WMDScorer(KeyedVectorsScorerBase):
             tags_guiding_typos=tags_guiding_typos,
         )
         self.wmd_index = None
+
+    def set_glossary(self, glossary):
+        """Set glossary"""
+        super(WMDScorer, self).set_glossary(glossary)
+
+    def set_tokenizer(self, tokenizer):
+        """Set tokenizer"""
+        super(WMDScorer, self).set_tokenizer(tokenizer)
+
+    def set_tag_guiding_typos(self, tag_guiding_typos):
+        """Set tag guiding typos"""
+        super(WMDScorer, self).set_tag_guiding_typos(tag_guiding_typos)
 
     def set_contents(self, contents, weights=None):
         """
