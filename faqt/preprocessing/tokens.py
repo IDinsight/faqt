@@ -5,6 +5,8 @@ Preprocessing methods that operate on a token or list of tokens.
 from copy import copy
 from itertools import chain, tee
 
+import hunspell
+
 try:
     from hunspell import Hunspell
 except ImportError:
@@ -83,6 +85,37 @@ def remove_stop_words(tokens, reincluded_stop_words=None):
     return [t for t in tokens if t.lower() not in my_stop_words]
 
 
+def check_gibberish(tokens):
+    """Checks if the list of tokens constitute gibberish or not. A list of tokens is
+    considered gibberish if
+    1. they are all numbers, OR
+    2. they are all misspelled in English.
+
+    Parameters
+    ----------
+    tokens : List[str]
+        List of tokens/words
+
+    Returns
+    -------
+    boolean
+        True if the list of tokens is gibberish, False otherwise.
+    """
+    all_numeric = all(t.isnumeric() for t in tokens)
+
+    if all_numeric:
+        return True
+
+    if _has_hunspell:
+        spell_checker = Hunspell()
+        all_misspelled = all(not spell_checker.spell(t.lower()) for t in tokens)
+
+        if all_misspelled:
+            return True
+
+    return False
+
+
 class CustomHunspell(object):
     """
     ``hunspell.Hunspell``-like class with custom dictionary and custom spell
@@ -124,6 +157,7 @@ class CustomHunspell(object):
         priority_words=None,
         hunspell=None,
     ):
+        """See class docstring for details."""
         if hunspell is None:
             if not _has_hunspell:
                 raise ImportError(

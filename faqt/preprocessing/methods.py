@@ -6,7 +6,12 @@ __all__ = ["preprocess_text_for_word_embedding", "preprocess_text_for_keyword_ru
 from itertools import chain
 
 from faqt.preprocessing.text import process_urls, remove_punctuation
-from faqt.preprocessing.tokens import connect_phrases, get_ngrams, remove_stop_words
+from faqt.preprocessing.tokens import (
+    check_gibberish,
+    connect_phrases,
+    get_ngrams,
+    remove_stop_words,
+)
 from nltk.tokenize import word_tokenize
 
 
@@ -47,9 +52,13 @@ def preprocess_text_for_word_embedding(
 
     text = process_urls(text, n_min_dashed_words_url)
     text = remove_punctuation(text)
-    tokens = word_tokenize(text)
 
+    tokens = word_tokenize(text)
     tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
+
+    if check_gibberish(tokens):
+        return []
+
     tokens = connect_phrases(tokens, entities_dict)
 
     return tokens
