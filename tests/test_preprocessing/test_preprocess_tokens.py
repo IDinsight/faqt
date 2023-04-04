@@ -3,6 +3,7 @@ import sys
 import pytest
 from faqt.preprocessing.tokens import (
     CustomHunspell,
+    check_gibberish,
     connect_phrases,
     get_ngrams,
     remove_stop_words,
@@ -206,3 +207,37 @@ class TestCustomHunspell:
         )
 
         assert huns.suggest("chils") == ("chills",)
+
+
+class TestCheckGibberish:
+    @pytest.mark.parametrize(
+        "tokens, expected",
+        [
+            (["hello"], False),
+            (["hello", "sdfg"], False),
+            ([], True),
+            (["sdfg"], True),
+            (["1"], True),
+            (["33", "2"], True),
+            (["hello", "1"], False),
+            (["sdfg", "1"], True),
+        ],
+    )
+    def test_check_gibberish_with_spell_check(self, tokens, expected):
+        assert check_gibberish(tokens, spell_check=True) == expected
+
+    @pytest.mark.parametrize(
+        "tokens, expected",
+        [
+            (["hello"], False),
+            (["hello", "sdfg"], False),
+            ([], True),
+            (["sdfg"], False),
+            (["1"], True),
+            (["33", "2"], True),
+            (["hello", "1"], False),
+            (["sdfg", "1"], False),
+        ],
+    )
+    def test_check_gibberish_without_spell_check(self, tokens, expected):
+        assert check_gibberish(tokens, spell_check=False) == expected

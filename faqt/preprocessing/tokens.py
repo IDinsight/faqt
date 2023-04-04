@@ -85,11 +85,15 @@ def remove_stop_words(tokens, reincluded_stop_words=None):
     return [t for t in tokens if t.lower() not in my_stop_words]
 
 
-def check_gibberish(tokens):
-    """Checks if the list of tokens constitute gibberish or not. A list of tokens is
-    considered gibberish if
-    1. they are all numbers, OR
-    2. they are all misspelled in English.
+def check_gibberish(tokens, spell_check=False):
+    """Checks if the list of tokens is gibberish or not.
+
+    If spell_check is False, then a list of tokens is considered gibberish if all tokens
+    are numeric, for example, `["1"]` or `["33", "1"]`.
+
+    If `spell_check` is True, then `hunspell` library must be installed, and a list of tokens is
+    considered gibberish if all tokens are either numbers or misspelled. For example,
+    `["33", "wks"]` is considered gibberish, but `["33", "weeks"]` is not.
 
     Parameters
     ----------
@@ -106,9 +110,16 @@ def check_gibberish(tokens):
     if all_numeric:
         return True
 
-    if _has_hunspell:
+    if spell_check:
+        if not _has_hunspell:
+            raise ImportError(
+                f"Could not import hunspell library. If `spell_check` is True, then check_gibberish requires hunspell library."
+            )
+
         spell_checker = Hunspell()
-        all_misspelled = all(not spell_checker.spell(t.lower()) for t in tokens)
+        all_misspelled = all(
+            not spell_checker.spell(t.lower()) for t in tokens if not t.isnumeric()
+        )
 
         if all_misspelled:
             return True
