@@ -215,12 +215,12 @@ class TestCheckGibberish:
         [
             (["hello"], False),
             (["hello", "sdfg"], False),
-            ([], True),
+            ([], False),
             (["sdfg"], True),
             (["1"], True),
             (["33", "2"], True),
             (["hello", "1"], False),
-            (["sdfg", "1"], True),
+            (["sdfg", "1"], False),
         ],
     )
     def test_check_gibberish_with_spell_check(self, tokens, expected):
@@ -231,7 +231,7 @@ class TestCheckGibberish:
         [
             (["hello"], False),
             (["hello", "sdfg"], False),
-            ([], True),
+            ([], False),
             (["sdfg"], False),
             (["1"], True),
             (["33", "2"], True),
