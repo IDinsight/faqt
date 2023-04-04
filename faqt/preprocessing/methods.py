@@ -16,7 +16,11 @@ from nltk.tokenize import word_tokenize
 
 
 def preprocess_text_for_word_embedding(
-    text, entities_dict, n_min_dashed_words_url, reincluded_stop_words=None
+    text,
+    entities_dict,
+    n_min_dashed_words_url,
+    reincluded_stop_words=None,
+    spell_check_for_gibberish=False,
 ):
     """
     Preprocess raw text strings to approximate preprocessing that goes into
@@ -43,6 +47,8 @@ def preprocess_text_for_word_embedding(
         text as an actual relevant content summary
     reincluded_stop_words: List[str], optional
         A list of words that should not be stop words.
+    spell_check_for_gibberish: bool, optional
+        Whether to spell check for gibberish if the message has only a single token. Default is False.
 
     Returns
     -------
@@ -56,7 +62,7 @@ def preprocess_text_for_word_embedding(
     tokens = word_tokenize(text)
     tokens = remove_stop_words(tokens, reincluded_stop_words=reincluded_stop_words)
 
-    if check_gibberish(tokens):
+    if check_gibberish(tokens, spell_check=spell_check_for_gibberish):
         return []
 
     tokens = connect_phrases(tokens, entities_dict)
