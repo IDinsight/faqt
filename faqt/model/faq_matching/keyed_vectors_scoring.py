@@ -115,9 +115,9 @@ class KeyedVectorsScorerBase(ABC):
         """Set tokenizer"""
         self.tokenizer = tokenizer
 
-    def set_tag_guiding_typos(self, tag_guiding_typos):
+    def set_tags_guiding_typos(self, tags_guiding_typos):
         """Set tag guiding typos"""
-        self.tags_guiding_typos = tag_guiding_typos
+        self.tags_guiding_typos = tags_guiding_typos
 
     @abstractmethod
     def set_contents(self, contents, weights=None):
