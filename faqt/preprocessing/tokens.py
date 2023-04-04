@@ -101,6 +101,9 @@ def check_gibberish(tokens, spell_check=False):
     ----------
     tokens : List[str]
         List of tokens/words
+    spell_check : bool, optional
+        If True, then also consider a list of a single token as gibberish if that token
+        is misspelled. `hunspell` should be installed in this case. Default is False.
 
     Returns
     -------
