@@ -107,6 +107,18 @@ class KeyedVectorsScorerBase(ABC):
         self.content_vectors = None
         self.content_weights = None
 
+    def set_glossary(self, glossary):
+        """Set glossary"""
+        self.glossary = glossary
+
+    def set_tokenizer(self, tokenizer):
+        """Set tokenizer"""
+        self.tokenizer = tokenizer
+
+    def set_tags_guiding_typos(self, tags_guiding_typos):
+        """Set tag guiding typos"""
+        self.tags_guiding_typos = tags_guiding_typos
+
     @abstractmethod
     def set_contents(self, contents, weights=None):
         """Sets content: preprocesses `contents` and `weights` as necessary
