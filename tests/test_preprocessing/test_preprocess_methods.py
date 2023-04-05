@@ -257,6 +257,50 @@ class TestPreprocessingForWordEmbedding:
                 preprocess_text_for_word_embedding(msg, {}, 4) == desired_results[msg]
             )
 
+    @pytest.mark.parametrize(
+        "msg",
+        [
+            "asdfasdfasdf",
+            "1-496-234-1245",
+            "33",
+            "1234",
+            "http://www.google.com/blog/pst",
+            "$^@^123",
+        ],
+    )
+    def test_gibberish_returns_empty_tokens_with_spell_check(self, msg):
+        """
+        Test that gibberish returns empty tokens
+        """
+        assert (
+            preprocess_text_for_word_embedding(
+                msg, {}, 0, spell_check_for_gibberish=True
+            )
+            == []
+        )
+
+    @pytest.mark.parametrize(
+        "msg, expected",
+        [
+            ("asdfasdfasdf", ["asdfasdfasdf"]),
+            ("1-496-234-1245", []),
+            ("33", []),
+            ("1234", []),
+            ("http://www.google.com/blog/123-pst", ["123", "pst"]),
+            ("$^@^123", []),
+        ],
+    )
+    def test_gibberish_returns_correct_tokens_without_spell_check(self, msg, expected):
+        """
+        Test that gibberish with spell_check_for_gibberish=False returns correct tokens
+        """
+        assert (
+            preprocess_text_for_word_embedding(
+                msg, {}, 0, spell_check_for_gibberish=False
+            )
+            == expected
+        )
+
 
 class TestPreprocessingForKeywordRule:
     @pytest.fixture

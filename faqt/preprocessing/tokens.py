@@ -83,6 +83,59 @@ def remove_stop_words(tokens, reincluded_stop_words=None):
     return [t for t in tokens if t.lower() not in my_stop_words]
 
 
+def is_gibberish(tokens, spell_check=False):
+    """Checks if the list of tokens is gibberish or not.
+
+    If `spell_check` is False, then a list of tokens is considered gibberish if all tokens
+    are numeric, for example, `["1"]` or `["1", "123", "456", "7890]`.
+
+    If `spell_check` is True, then a list of tokens is considered gibberish if all tokens
+    are numeric OR if it's a list of one token and that token is misspelled. For the
+    spell check to work, `hunspell` library must be installed. For example, `["helo",
+    "wolrd"]` and `["3", "appls"]` are not considered a gibberish whereas `["helo"]` and
+    `["appls"]` are.
+
+    # TODO: allow user to pass in custom hunspell instance
+
+    Parameters
+    ----------
+    tokens : List[str]
+        List of tokens/words
+    spell_check : bool, optional
+        If True, then also consider a list of a single token as gibberish if that token
+        is misspelled. `hunspell` should be installed in this case. Default is False.
+
+    Returns
+    -------
+    boolean
+        True if the list of tokens is gibberish, False otherwise.
+    """
+    if len(tokens) == 0:
+        return False
+
+    all_numeric = all(t.isnumeric() for t in tokens)
+
+    if all_numeric:
+        return True
+
+    if spell_check:
+        if len(tokens) != 1:
+            return False
+
+        if not _has_hunspell:
+            raise ImportError(
+                f"Could not import hunspell library. If `spell_check` is True, then check_gibberish requires hunspell library."
+            )
+
+        spell_checker = Hunspell()
+        is_spelled_correctly = spell_checker.spell(tokens[0])
+
+        if not is_spelled_correctly:
+            return True
+
+    return False
+
+
 class CustomHunspell(object):
     """
     ``hunspell.Hunspell``-like class with custom dictionary and custom spell
@@ -124,6 +177,7 @@ class CustomHunspell(object):
         priority_words=None,
         hunspell=None,
     ):
+        """See class docstring for details."""
         if hunspell is None:
             if not _has_hunspell:
                 raise ImportError(

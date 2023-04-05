@@ -5,6 +5,7 @@ from faqt.preprocessing.tokens import (
     CustomHunspell,
     connect_phrases,
     get_ngrams,
+    is_gibberish,
     remove_stop_words,
 )
 
@@ -206,3 +207,37 @@ class TestCustomHunspell:
         )
 
         assert huns.suggest("chils") == ("chills",)
+
+
+class TestCheckGibberish:
+    @pytest.mark.parametrize(
+        "tokens, expected",
+        [
+            (["hello"], False),
+            (["hello", "sdfg"], False),
+            ([], False),
+            (["sdfg"], True),
+            (["1"], True),
+            (["33", "2"], True),
+            (["hello", "1"], False),
+            (["sdfg", "1"], False),
+        ],
+    )
+    def test_check_gibberish_with_spell_check(self, tokens, expected):
+        assert is_gibberish(tokens, spell_check=True) == expected
+
+    @pytest.mark.parametrize(
+        "tokens, expected",
+        [
+            (["hello"], False),
+            (["hello", "sdfg"], False),
+            ([], False),
+            (["sdfg"], False),
+            (["1"], True),
+            (["33", "2"], True),
+            (["hello", "1"], False),
+            (["sdfg", "1"], False),
+        ],
+    )
+    def test_check_gibberish_without_spell_check(self, tokens, expected):
+        assert is_gibberish(tokens, spell_check=False) == expected
