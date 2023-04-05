@@ -3,9 +3,9 @@ import sys
 import pytest
 from faqt.preprocessing.tokens import (
     CustomHunspell,
-    check_gibberish,
     connect_phrases,
     get_ngrams,
+    is_gibberish,
     remove_stop_words,
 )
 
@@ -224,7 +224,7 @@ class TestCheckGibberish:
         ],
     )
     def test_check_gibberish_with_spell_check(self, tokens, expected):
-        assert check_gibberish(tokens, spell_check=True) == expected
+        assert is_gibberish(tokens, spell_check=True) == expected
 
     @pytest.mark.parametrize(
         "tokens, expected",
@@ -240,4 +240,4 @@ class TestCheckGibberish:
         ],
     )
     def test_check_gibberish_without_spell_check(self, tokens, expected):
-        assert check_gibberish(tokens, spell_check=False) == expected
+        assert is_gibberish(tokens, spell_check=False) == expected

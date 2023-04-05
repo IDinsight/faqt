@@ -83,7 +83,7 @@ def remove_stop_words(tokens, reincluded_stop_words=None):
     return [t for t in tokens if t.lower() not in my_stop_words]
 
 
-def check_gibberish(tokens, spell_check=False):
+def is_gibberish(tokens, spell_check=False):
     """Checks if the list of tokens is gibberish or not.
 
     If `spell_check` is False, then a list of tokens is considered gibberish if all tokens
