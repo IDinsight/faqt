@@ -241,3 +241,22 @@ class TestCheckGibberish:
     )
     def test_check_gibberish_without_spell_check(self, tokens, expected):
         assert is_gibberish(tokens, spell_check=False) == expected
+
+    def test_import_error_raised_if_hunspell_unavailable_and_token_list_length_is_1(
+        self,
+    ):
+        # Patch the module-level global variable that's set during import
+        import faqt
+
+        faqt.preprocessing.tokens._has_hunspell = False
+
+        with pytest.raises(ImportError, match=r"Could not import hunspell library."):
+            is_gibberish(["hello"], spell_check=True)
+
+        # Set correct values at the end of test
+        try:
+            from hunspell import Hunspell
+        except ImportError:
+            faqt.preprocessing.tokens._has_hunspell = False
+        else:
+            faqt.preprocessing.tokens._has_hunspell = True
