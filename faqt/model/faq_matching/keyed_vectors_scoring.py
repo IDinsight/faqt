@@ -28,9 +28,10 @@ class KeyedVectorsScorerBase(ABC):
 
     glossary: Dict[str, Dict[str, float]], optional
         Custom contextualization glossary. Words to replace are keys; their
-        values
-        must be dictionaries with (replacement words : weight) as key-value
-        pairs
+        values must be dictionaries with (replacement words : weight) as key-value
+        pairs. All keys will be turned into its lowercase form. When looking up a word
+        in the glossary, the lowercased token will be looked up. If a token is not found
+        in the glossary, it will be left as is.
 
     hunspell: Hunspell, optional
         Optional instance of the hunspell spell checker.
@@ -86,7 +87,7 @@ class KeyedVectorsScorerBase(ABC):
             tokenizer = word_tokenize
 
         self.tokenizer = tokenizer
-        self.glossary = glossary.copy()
+        self.glossary = preprocess_glossary(glossary)
         self.hunspell = hunspell
         self.tags_guiding_typos = tags_guiding_typos.copy()
 
@@ -109,7 +110,7 @@ class KeyedVectorsScorerBase(ABC):
 
     def set_glossary(self, glossary):
         """Set glossary"""
-        self.glossary = glossary
+        self.glossary = preprocess_glossary(glossary)
 
     def set_tokenizer(self, tokenizer):
         """Set tokenizer"""
@@ -570,6 +571,24 @@ class WMDScorer(KeyedVectorsScorerBase):
         result = {"overall_scores": scores}
 
         return result
+
+
+def preprocess_glossary(glossary):
+    """Preprocess glossary for use in `model_search_word` and `model_search`.
+    Currently only lowercases keys.
+
+    Parameters
+    ----------
+    glossary : Dict
+        Glossary to preprocess.
+
+    Returns
+    -------
+    Dict
+        Preprocessed glossary
+    """
+    lowercased_keys = {k.lower(): v for k, v in glossary.items()}
+    return lowercased_keys
 
 
 def model_search_word(

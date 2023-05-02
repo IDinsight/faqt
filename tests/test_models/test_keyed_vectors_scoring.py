@@ -275,6 +275,27 @@ class TestKeyedVectorsScorers:
             np.asarray(content_weights) / sum(content_weights),
         )
 
+    @pytest.mark.parametrize(
+        "model_class",
+        [StepwiseKeyedVectorsScorer, WMDScorer],
+    )
+    def test_glossary_keys_are_lowercased_during_init(self, model_class, w2v_model):
+        model = model_class(w2v_model, glossary={"TEST": "test"})
+
+        for key in model.glossary:
+            assert key.islower()
+
+    @pytest.mark.parametrize(
+        "model_name",
+        ["stepwise_basic_model", "wmd_basic_model"],
+    )
+    def test_glossary_keys_are_lowercased_after_set(self, model_name, request):
+        model = request.getfixturevalue(model_name)
+        model.set_glossary({"TEST": "test"})
+
+        for key in model.glossary:
+            assert key.islower()
+
 
 class TestStepwiseKeyedVectorScorer:
     @pytest.mark.parametrize(
